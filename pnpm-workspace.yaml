@@ -1,0 +1,4 @@
+packages:
+  # packages/* 表示 packages 目录下的所有子文件夹（即所有子包）都会被 pnpm 管理。
+  # 单独的依赖放到这个目录，公共的依赖放到根目录
+  - "packages/*"
