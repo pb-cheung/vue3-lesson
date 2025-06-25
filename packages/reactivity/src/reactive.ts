@@ -5,28 +5,28 @@ import { ReactiveFlags, mutableHandlers } from "./baseHandler";
 const reactiveMap = new WeakMap(); // WeakMap防止内存泄漏？
 
 export function reactive(target) {
-    return createReactiveObject(target);
+  return createReactiveObject(target);
 }
-export function shallowReactive(target) {}
+export function shallowReactive(target) { }
 
 function createReactiveObject(target) {
-    // 统一判读，响应式对象必须是对象才可以
-    if (!isObject(target)) {
-        return;
-    }
+  // 统一判读，响应式对象必须是对象才可以
+  if (!isObject(target)) {
+    return;
+  }
 
-    // 解决代理过的对象再次被代理：判断是否有get方法
-    if (target[ReactiveFlags.IS_REACTIVE]) {
-        return target;
-    }
+  // 解决代理过的对象再次被代理：判断是否有get方法
+  if (target[ReactiveFlags.IS_REACTIVE]) {
+    return target;
+  }
 
-    // 解决重复代理：取缓存，如果有直接返回
-    const existsProxy = reactiveMap.get(target);
-    if (existsProxy) {
-        return existsProxy;
-    }
-    let proxy = new Proxy(target, mutableHandlers);
-    // 根据对象缓存代理后的结果
-    reactiveMap.set(target, proxy);
-    return proxy;
+  // 解决重复代理：取缓存，如果有直接返回
+  const existsProxy = reactiveMap.get(target);
+  if (existsProxy) {
+    return existsProxy;
+  }
+  let proxy = new Proxy(target, mutableHandlers);
+  // 根据对象缓存代理后的结果
+  reactiveMap.set(target, proxy);
+  return proxy;
 }
