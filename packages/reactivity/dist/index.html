@@ -1,45 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Title</title>
-</head>
-<body>
-<div id="app"></div>
-<script type="module">
-    // 这是原生的
-    // import { reactive, effect } from '/node_modules/@vue/reactivity/dist/reactivity.esm-browser.js';
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module">
+      // 这是原生的
+      // import { reactive, effect } from '/node_modules/@vue/reactivity/dist/reactivity.esm-browser.js';
 
-    // 这是自己实现调试用的
-    import { reactive, effect } from './reactivity.js'
+      // 这是自己实现调试用的
+      import { reactive, effect } from './reactivity.js';
 
-    // reactive 让数据变成响应式的
-    // effect 副作用 数据变化后可以让effect重新执行，组件、watch、computed都是基于effect来实现
-    // console.log(reactive({name: "jw", age: 30 }));
+      // reactive 让数据变成响应式的
+      // effect 副作用 数据变化后可以让effect重新执行，组件、watch、computed都是基于effect来实现
+      // console.log(reactive({name: "pb", age: 30 }));
 
-    // const state = reactive({name: "jw", age: 30 });
-    // effect(() => {
-    //     app.innerHTML = `姓名${state.name} 年龄${state.age}`
-    // });
-    // setTimeout(() => {
-    //     state.age ++; // 数据变化后effect会再次重新执行
-    // }, 1000);
+      // const state = reactive({name: "pb", age: 30 });
+      // effect(() => {
+      //     app.innerHTML = `姓名${state.name} 年龄${state.age}`
+      // });
+      // setTimeout(() => {
+      //     state.age ++; // 数据变化后effect会再次重新执行
+      // }, 1000);
 
-    // 防止重复代理，缓存代理对象
-    // let obj = {name: "jw", age: 30 };
-    // const state1 = reactive(obj);
-    // const state2 = reactive(obj);
-    // console.log(state1 === state2);
+      // 防止重复代理，缓存代理对象
+      // let obj = {name: "jw", age: 30 };
+      // const state1 = reactive(obj);
+      // const state2 = reactive(obj);
+      // console.log(state1 === state2);
 
-    // 防止代理过的对象再次被代理
-    let obj = { name: "jw", age: 30 };
-    const state1 = reactive(obj);
-    // 如果state1被代理过后，一定有get和set了
-    const state2 = reactive(state1);
-    console.log(state1 === state2);
+      // 防止代理过的对象再次被代理
+      let obj = { name: 'jw', age: 30 };
+      const state1 = reactive(obj);
+      // 如果state1被代理过后，一定有get和set了
+      const state2 = reactive(state1);
+      console.log(state1 === state2);
 
-
-</script>
-
-</body>
+      const state = reactive({ name: 'pb', age: 30 });
+      console.log(state.name, state.age);
+      effect(() => {
+        app.innerHTML = `姓名${state.name} 年龄${state.age}`;
+      });
+    </script>
+  </body>
 </html>

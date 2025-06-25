@@ -1,21 +1,9 @@
 import { isObject } from "@vue/shared";
+import { ReactiveFlags, mutableHandlers } from "./baseHandler";
 
 // 用于记录我们的代理后的结果，可以复用（同一个对象代理多次还是得到的同个（proxy）对象）
 const reactiveMap = new WeakMap(); // WeakMap防止内存泄漏？
-enum ReactiveFlags {
-    IS_REACTIVE = '__v_isReactive',
-}
 
-const mutableHandlers: ProxyHandler<Record<any, any>> = {
-    get(target, key, receiver) {
-        if(key === ReactiveFlags.IS_REACTIVE) {
-            return true;
-        }
-    },
-    set(target, key, value, receiver){
-        return true;
-    }
-}
 export function reactive(target) {
     return createReactiveObject(target);
 }
