@@ -1,3 +1,6 @@
+import { activeEffect } from './effect'
+import { track } from './reactiveEffect'
+
 export enum ReactiveFlags {
   IS_REACTIVE = '__v_isReactive',
 }
@@ -12,6 +15,9 @@ export const mutableHandlers: ProxyHandler<Record<any, any>> = {
 
     // TODO:依赖收集
 
+    track(target, key); // 收集这个对象上的这个属性，和effect关联在一起
+    // console.log(activeEffect, key);
+
     return Reflect.get(target, key, receiver);
   },
   set(target, key, value, receiver) {
@@ -19,6 +25,6 @@ export const mutableHandlers: ProxyHandler<Record<any, any>> = {
 
     // TODO:触发更新
 
-    return Reflect.set(target, key, receiver);
+    return Reflect.set(target, key, value, receiver);
   },
 };

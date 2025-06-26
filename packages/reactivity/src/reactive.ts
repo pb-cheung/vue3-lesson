@@ -12,7 +12,7 @@ export function shallowReactive(target) { }
 function createReactiveObject(target) {
   // 统一判读，响应式对象必须是对象才可以
   if (!isObject(target)) {
-    return;
+    return target;
   }
 
   // 解决代理过的对象再次被代理：判断是否有get方法
