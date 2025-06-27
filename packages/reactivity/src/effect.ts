@@ -12,6 +12,7 @@ export function effect(fn, options?) {
 }
 
 export let activeEffect;
+// effectScope.stop(); // 停止所有的effect不参加响应式处理
 class ReactiveEffect {
   public active = true; // 创建的effect是响应式的
 
@@ -41,6 +42,8 @@ class ReactiveEffect {
       // activeEffect = undefined; // 依赖收集完成后，重置activeEffect
       activeEffect = lastEffect;
     }
-
+  }
+  stop() {
+    this.active = false; // 后续来实现
   }
 }
