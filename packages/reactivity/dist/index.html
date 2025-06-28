@@ -44,8 +44,8 @@
       //   app.innerHTML = `姓名${state.name} 年龄${state.age}`;
       // });
 
-      let obj = { name: 'pb', age: 30 };
-      const state = reactive(obj);
+      // let obj = { name: 'pb', age: 30 };
+      // const state = reactive(obj);
       // const _effect = effect(() => {
       //   app.innerHTML = `姓名${state.name} 年龄${state.age}`;
       // });
@@ -73,12 +73,18 @@
       //   console.log(state.age);
       // });
 
+      let obj = { name: 'pb', age: 30 };
+      const state = reactive(obj);
       effect(() => {
         app.innerHTML = `姓名${state.name} 年龄${state.age}`;
       });
-      effect(() => {
-        app.innerHTML = `姓名${state.name}`;
-      });
+      // effect(() => {
+      //   app.innerHTML = `姓名${state.name}`;
+      // });
+      setTimeout(() => {
+        state.age++; // 数据变化后effect会再次重新执行
+      }, 1000);
+
       // name对应两个activeEffect
       // {
       //   {name: 'pb', age: 30}: {

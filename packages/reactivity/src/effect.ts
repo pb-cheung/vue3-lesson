@@ -14,6 +14,10 @@ export function effect(fn, options?) {
 export let activeEffect;
 // effectScope.stop(); // 停止所有的effect不参加响应式处理
 class ReactiveEffect {
+  _trackId = 0; // 用于记录当前effect执行了几次
+  deps = [];
+  _depsLength = 0;
+
   public active = true; // 创建的effect是响应式的
 
   // fn: 用户编写的函数
@@ -46,4 +50,13 @@ class ReactiveEffect {
   stop() {
     this.active = false; // 后续来实现
   }
+}
+
+// 双向记忆：
+// 1. 依赖树上存储了响应式对象属性和effect的map
+// 2. effect上也通过deps数组，存储了 
+export function trackEffect(effect, dep) {
+  dep.set(effect, effect._trackId)
+  // 我还想让effect和dep关联起来
+  effect.deps[effect._depsLength++] = dep;
 }
