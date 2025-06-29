@@ -1,102 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Title</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module">
-      // 这是原生的
-      // import { reactive, effect } from '/node_modules/@vue/reactivity/dist/reactivity.esm-browser.js';
 
-      // 这是自己实现调试用的
-      import { reactive, effect } from './reactivity.js';
+<head>
+  <meta charset="UTF-8" />
+  <title>Title</title>
+</head>
 
-      // reactive 让数据变成响应式的
-      // effect 副作用 数据变化后可以让effect重新执行，组件、watch、computed都是基于effect来实现
-      // console.log(reactive({name: "pb", age: 30 }));
+<body>
+  <div id="app"></div>
+  <script type="module">
+    // 这是原生的
+    // import { reactive, effect } from '/node_modules/@vue/reactivity/dist/reactivity.esm-browser.js';
 
-      // const state = reactive({name: "pb", age: 30 });
-      // effect(() => {
-      //     app.innerHTML = `姓名${state.name} 年龄${state.age}`
-      // });
-      // setTimeout(() => {
-      //     state.age ++; // 数据变化后effect会再次重新执行
-      // }, 1000);
+    // 这是自己实现调试用的
+    import { reactive, effect } from './reactivity.js';
 
-      // 防止重复代理，缓存代理对象
-      // let obj = {name: "jw", age: 30 };
-      // const state1 = reactive(obj);
-      // const state2 = reactive(obj);
-      // console.log(state1 === state2);
+    // reactive 让数据变成响应式的
+    // effect 副作用 数据变化后可以让effect重新执行，组件、watch、computed都是基于effect来实现
+    // console.log(reactive({name: "pb", age: 30 }));
 
-      // // 防止代理过的对象再次被代理
-      // let obj = { name: 'pb', age: 30 };
-      // const state1 = reactive(obj);
-      // // 如果state1被代理过后，一定有get和set了
-      // const state2 = reactive(state1);
-      // console.log(state1 === state2);
+    // const state = reactive({name: "pb", age: 30 });
+    // effect(() => {
+    //     app.innerHTML = `姓名${state.name} 年龄${state.age}`
+    // });
+    // setTimeout(() => {
+    //     state.age ++; // 数据变化后effect会再次重新执行
+    // }, 1000);
 
-      // const state = reactive({ name: 'pb', age: 30 });
-      // console.log(state.name, state.age);
-      // effect(() => {
-      //   app.innerHTML = `姓名${state.name} 年龄${state.age}`;
-      // });
+    // 防止重复代理，缓存代理对象
+    // let obj = {name: "jw", age: 30 };
+    // const state1 = reactive(obj);
+    // const state2 = reactive(obj);
+    // console.log(state1 === state2);
 
-      // let obj = { name: 'pb', age: 30 };
-      // const state = reactive(obj);
-      // const _effect = effect(() => {
-      //   app.innerHTML = `姓名${state.name} 年龄${state.age}`;
-      // });
-      // state.age++;
-      // _effect.run();
+    // // 防止代理过的对象再次被代理
+    // let obj = { name: 'pb', age: 30 };
+    // const state1 = reactive(obj);
+    // // 如果state1被代理过后，一定有get和set了
+    // const state2 = reactive(state1);
+    // console.log(state1 === state2);
 
-      // effect(() => {
-      //   app.innerHTML = `姓名${state.name} 年龄${state.age}`;
-      // });
-      // setTimeout(() => {
-      //   state.age++; // 数据变化后effect会再次重新执行
-      // }, 1000);
+    // const state = reactive({ name: 'pb', age: 30 });
+    // console.log(state.name, state.age);
+    // effect(() => {
+    //   app.innerHTML = `姓名${state.name} 年龄${state.age}`;
+    // });
 
-      // effect(() => {
-      //   // f1
-      //   console.log(state.name);
+    // let obj = { name: 'pb', age: 30 };
+    // const state = reactive(obj);
+    // const _effect = effect(() => {
+    //   app.innerHTML = `姓名${state.name} 年龄${state.age}`;
+    // });
+    // state.age++;
+    // _effect.run();
 
-      //   effect(() => {
-      //     // f2
-      //     console.log(state.name);
-      //   });
+    // effect(() => {
+    //   app.innerHTML = `姓名${state.name} 年龄${state.age}`;
+    // });
+    // setTimeout(() => {
+    //   state.age++; // 数据变化后effect会再次重新执行
+    // }, 1000);
 
-      //   // f2执行完毕后，把activeEffect置为了undefined，就无法进行依赖(f1 -> age)搜集了
-      //   // 可以使用递归或者堆栈解决
-      //   console.log(state.age);
-      // });
+    // effect(() => {
+    //   // f1
+    //   console.log(state.name);
 
-      let obj = { name: 'pb', age: 30 };
-      const state = reactive(obj);
-      effect(() => {
-        app.innerHTML = `姓名${state.name} 年龄${state.age}`;
-      });
-      // effect(() => {
-      //   app.innerHTML = `姓名${state.name}`;
-      // });
+    //   effect(() => {
+    //     // f2
+    //     console.log(state.name);
+    //   });
+
+    //   // f2执行完毕后，把activeEffect置为了undefined，就无法进行依赖(f1 -> age)搜集了
+    //   // 可以使用递归或者堆栈解决
+    //   console.log(state.age);
+    // });
+
+    // let obj = { name: 'pb', age: 30 };
+    // const state = reactive(obj);
+    // effect(() => {
+    //   app.innerHTML = `姓名${state.name} 年龄${state.age}`;
+    // });
+    // // effect(() => {
+    // //   app.innerHTML = `姓名${state.name}`;
+    // // });
+    // setTimeout(() => {
+    //   state.age++; // 数据变化后effect会再次重新执行
+    // }, 1000);
+
+    // lesson-9
+    // eg: 问题1：分支语句导致effect依赖的属性发生变化，如何更新依赖
+    let obj = { name: 'pb', age: 30, flag: true };
+    const state = reactive(obj);
+    effect(() => {
+      console.log("🚀 ~ effect obj:", state)
+      app.innerHTML = state.flag ? state.name : state.age;
+    });
+    // 依赖关系：
+    // obj: { flag: { effect }, name: { effect } }
+    // 第一个setTimeout回调函执行后，触发effect函数执行后，依赖关系变为：
+    // obj: { flag: { effect }, name: { effect }, age: { effect } }
+    setTimeout(() => {
+      state.flag = false;
+
       setTimeout(() => {
-        state.age++; // 数据变化后effect会再次重新执行
+        console.log("修改name属性后，不应该触发effect函数执行", )
+        state.name = 'handsome pb'; // 修改name属性后，不应该触发effect函数执行
       }, 1000);
 
-      // name对应两个activeEffect
-      // {
-      //   {name: 'pb', age: 30}: {
-      //     age: {
-      //       effect
-      //     },
-      //     name: {
-      //       effect,
-      //       effect,
-      //     }
-      //   }
-      // }
-    </script>
-  </body>
+    }, 1000);
+    // 打印信息可以看到三行：
+    // 🚀 ~ effect obj: Proxy(Object) {name: 'pb', age: 30, flag: true}
+    // 🚀 ~ effect obj: Proxy(Object) {name: 'pb', age: 30, flag: false}
+    // 🚀 ~ effect obj: Proxy(Object) {name: 'handsome pb', age: 30, flag: false}
+
+    // 我们需要一个算法，来比对不同分支语句切换的时候的差异      
+    // eg: 问题2：先解决一个effect中多次引用同个属性导致的重复将同个effect添加到依赖的问题
+    // effect(() => {
+    //   app.innerHTML = state.flag + state.flag + state.flag;
+    // }); // trackEffect会调用3次，将这个effect添加到flag的dep上3次
+
+
+  </script>
+</body>
+
 </html>
