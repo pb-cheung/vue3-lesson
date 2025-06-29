@@ -13,8 +13,7 @@ export const mutableHandlers: ProxyHandler<Record<any, any>> = {
     }
     // 当取值的时候 应该让响应式属性和 effect 映射起来
 
-    // TODO:依赖收集
-
+    // 依赖收集
     track(target, key); // 收集这个对象上的这个属性，和effect关联在一起
     // console.log(activeEffect, key);
 
@@ -23,7 +22,7 @@ export const mutableHandlers: ProxyHandler<Record<any, any>> = {
   set(target, key, value, receiver) {
     // 找到属性 让对应的effect更新
 
-    // TODO:触发更新
+    // 触发更新
     let oldValue = target[key as any];
     let result = Reflect.set(target, key, value, receiver);
     if (oldValue !== value) {
