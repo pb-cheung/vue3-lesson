@@ -8,7 +8,13 @@ export function effect(fn, options?) {
   });
   _effect.run();
 
-  return _effect;
+  if (options) {
+    Object.assign(_effect, options); // 用户传递的（scheduler）覆盖掉
+  }
+  const runner = _effect.run.bind(_effect);
+  runner.effect = _effect; // 可以在润方法上获取到effect的引用
+  return runner; // 外界可以自己让其重新run
+  // return _effect;
 }
 
 export let activeEffect;
@@ -36,7 +42,7 @@ class ReactiveEffect {
 
   // fn: 用户编写的函数
   // 如果fn中依赖的数据发生变化后，需要重新调用 -> run()
-  constructor(public fn, public scheduler) {}
+  constructor(public fn, public scheduler) { }
   // TypeScript 的语法糖，简化代码。在 Vue 3 或其他现代框架源码中经常能看到这种写法。
   // 在 TypeScript 中，直接通过 public、private、protected 修饰构造函数参数时，会同时完成两个操作：
   // 自动在类实例上声明属性
