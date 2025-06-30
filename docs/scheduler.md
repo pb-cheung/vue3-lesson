@@ -66,7 +66,7 @@ state.count = 3;
 state.count = 4;
 state.count = 5;
 
-// 终端输出位：
+// 终端输出为：
 // 最终 count: 0 // 刚注册执行一次
 // 最终 count: 5 // 所有同步的修改之后，执行一次
 ```

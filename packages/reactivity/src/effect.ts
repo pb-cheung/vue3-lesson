@@ -35,8 +35,10 @@ function postCleanEffect(effect) {
 // effectScope.stop(); // 停止所有的effect不参加响应式处理
 class ReactiveEffect {
   _trackId = 0; // 用于记录当前effect执行了几次
-  deps = [];
   _depsLength = 0;
+  _runnings = 0; // 是否正在执行
+
+  deps = [];
 
   public active = true; // 创建的effect是响应式的
 
@@ -64,9 +66,10 @@ class ReactiveEffect {
 
       // effect重新执行前，需要将上一次的依赖情况清理 effect.deps清空
       preCleanEffect(this);
-
+      this._runnings++;
       return this.fn(); // （getter函数中）依赖收集（effect中用到的响应式数据，将fn添加为其依赖） -> state.name state.age
     } finally {
+      this._runnings--;
       // 依赖收集完成后，清理上一次多余的依赖情况
       // 因为trackEffect中的新旧的比较算法，是按照effect._depsLength作为索引逐个向后比较的，如果新的effect.deps比旧的少，则会导致多余的依赖没有被清理掉
       postCleanEffect(this);
