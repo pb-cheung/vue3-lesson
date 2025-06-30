@@ -178,6 +178,15 @@
       //   // 解决方法：effect类中添加属性（_runnings）记录执行状态，effect的调度执行前检查此属性
       //   // 执行优化后这种情况不会触发effect更新
       // });
+      // 11-2 深层代理
+      // 目前只有obj内第一层属性（name,address）添加了代理，再深层没有
+      // 解决方法：getter中判断，取的值是对象的情况，使用reactive函数给这个值添加代理，递归
+      // effect(() => {
+      //   app.innerHTML = state.address.n;
+      // });
+      // setTimeout(() => {
+      //   state.address.n = 58001;
+      // }, 1000);
     </script>
   </body>
 </html>
