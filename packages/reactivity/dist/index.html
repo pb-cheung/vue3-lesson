@@ -12,10 +12,11 @@
       // import {
       //   reactive,
       //   effect,
+      //   ref,
       // } from '/node_modules/@vue/reactivity/dist/reactivity.esm-browser.js';
 
       // 这是自己实现调试用的
-      import { reactive, effect } from './reactivity.js';
+      import { reactive, effect, ref } from './reactivity.js';
 
       // reactive 让数据变成响应式的
       // effect 副作用 数据变化后可以让effect重新执行，组件、watch、computed都是基于effect来实现
@@ -169,8 +170,8 @@
       // // 最终 count: 5 // 所有同步的修改之后，执行一次
 
       // lesson-11 深度代理
-      let obj = { name: 'pb', address: { n: 10010 } };
-      const state = reactive(obj);
+      // let obj = { name: 'pb', address: { n: 10010 } };
+      // const state = reactive(obj);
       // 11-1 防止递归调用
       // effect(() => {
       //   app.innerHTML = state.name;
@@ -187,6 +188,27 @@
       // setTimeout(() => {
       //   state.address.n = 58001;
       // }, 1000);
+
+      // lesson-12 ref实现原理
+      const flag = ref(false); // wrap(false) =>
+      console.log('🚀 ~ file: index.html ~ line 194 ~ flag', flag.value);
+      effect(() => {
+        app.innerHTML = flag.value ? 'pb' : 30;
+      });
+      setTimeout(() => {
+        flag.value = true;
+      }, 1000);
+      // let flag1 = {
+      //   _v: false,
+      //   get value() {
+      //     // 收集effect
+      //     return this._v;
+      //   },
+      //   set value(newValue) {
+      //     // 更新effect
+      //     this._v = newValue;
+      //   },
+      // };
     </script>
   </body>
 </html>

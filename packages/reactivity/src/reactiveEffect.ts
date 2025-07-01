@@ -42,7 +42,7 @@ export function trigger(target, key, newValue, oldValue) {
     triggerEffects(dep);
   }
 }
-function triggerEffects(dep) {
+export function triggerEffects(dep) {
   for (const effect of dep.keys()) {
     if (effect.scheduler) {
       if (!effect._runnings) { // 如果effect不是执行的状态，才能执行
