@@ -1,5 +1,6 @@
 import { isObject } from "@vue/shared";
-import { ReactiveFlags, mutableHandlers } from "./baseHandler";
+import { mutableHandlers } from "./baseHandler";
+import { ReactiveFlags } from './contants'
 
 // 用于记录我们的代理后的结果，可以复用（同一个对象代理多次还是得到的同个（proxy）对象）
 const reactiveMap = new WeakMap(); // WeakMap防止内存泄漏？

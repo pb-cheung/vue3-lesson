@@ -1,3 +1,5 @@
+import { DirtyLevels } from "./contants";
+
 export function effect(fn, options?) {
   // 创建一个响应式effect 数据变化后可以重新执行
 
@@ -33,11 +35,11 @@ function postCleanEffect(effect) {
   }
 }
 // effectScope.stop(); // 停止所有的effect不参加响应式处理
-class ReactiveEffect {
+export class ReactiveEffect {
   _trackId = 0; // 用于记录当前effect执行了几次
   _depsLength = 0;
   _runnings = 0; // 是否正在执行
-
+  _dirtyLevel = DirtyLevels.Dirty;
   deps = [];
 
   public active = true; // 创建的effect是响应式的
@@ -55,7 +57,15 @@ class ReactiveEffect {
   //   this.scheduler = scheduler;
   // }
 
+  public get dirty() {
+    return this._dirtyLevel === DirtyLevels.Dirty;
+  }
+  public set dirty(v) {
+    this._dirtyLevel = v ? DirtyLevels.Dirty : DirtyLevels.Nodirty;
+  }
+
   run() {
+    this._dirtyLevel = DirtyLevels.Nodirty; // 每次运行后effect变为no_dirty
     // 让fn执行
     if (!this.active) {
       return this.fn(); // 不是激活的，执行后，什么都不用做
