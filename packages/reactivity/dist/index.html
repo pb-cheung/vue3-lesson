@@ -9,14 +9,15 @@
     <div id="app"></div>
     <script type="module">
       // 这是原生的
-      // import {
-      //   reactive,
-      //   effect,
-      //   ref,
-      // } from '/node_modules/@vue/reactivity/dist/reactivity.esm-browser.js';
+      import {
+        reactive,
+        effect,
+        ref,
+        toRef,
+      } from '/node_modules/vue/dist/vue.esm-browser.js';
 
       // 这是自己实现调试用的
-      import { reactive, effect, ref } from './reactivity.js';
+      // import { reactive, effect, ref } from './reactivity.js';
 
       // reactive 让数据变成响应式的
       // effect 副作用 数据变化后可以让effect重新执行，组件、watch、computed都是基于effect来实现
@@ -190,14 +191,14 @@
       // }, 1000);
 
       // lesson-12 ref实现原理
-      const flag = ref(false); // wrap(false) =>
-      console.log('🚀 ~ file: index.html ~ line 194 ~ flag', flag.value);
-      effect(() => {
-        app.innerHTML = flag.value ? 'pb' : 30;
-      });
-      setTimeout(() => {
-        flag.value = true;
-      }, 1000);
+      // const flag = ref(false); // wrap(false) =>
+      // console.log('🚀 ~ file: index.html ~ line 194 ~ flag', flag.value);
+      // effect(() => {
+      //   app.innerHTML = flag.value ? 'pb' : 30;
+      // });
+      // setTimeout(() => {
+      //   flag.value = true;
+      // }, 1000);
       // let flag1 = {
       //   _v: false,
       //   get value() {
@@ -209,6 +210,13 @@
       //     this._v = newValue;
       //   },
       // };
+
+      // lesson-13 toRef/toRefs实现原理
+      const state = reactive({ name: 'pb', age: 30 });
+      const nameRef = toRef(state, 'name'); // 还是基于Proxy来获取
+      const ageRef = toRef(state, 'age'); // { get value() { return
+      console.log(nameRef.value); // 通过state.value来获取值
+      console.log(ageRef.value);
     </script>
   </body>
 </html>
