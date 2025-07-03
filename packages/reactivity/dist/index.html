@@ -9,15 +9,24 @@
     <div id="app"></div>
     <script type="module">
       // 这是原生的
+      // import {
+      //   reactive,
+      //   effect,
+      //   ref,
+      //   toRef,
+      //   toRefs,
+      //   proxyRefs,
+      // } from '/node_modules/vue/dist/vue.esm-browser.js';
+
+      // 这是自己实现调试用的
       import {
         reactive,
         effect,
         ref,
         toRef,
-      } from '/node_modules/vue/dist/vue.esm-browser.js';
-
-      // 这是自己实现调试用的
-      // import { reactive, effect, ref } from './reactivity.js';
+        toRefs,
+        proxyRefs,
+      } from './reactivity.js';
 
       // reactive 让数据变成响应式的
       // effect 副作用 数据变化后可以让effect重新执行，组件、watch、computed都是基于effect来实现
@@ -213,10 +222,20 @@
 
       // lesson-13 toRef/toRefs实现原理
       const state = reactive({ name: 'pb', age: 30 });
-      const nameRef = toRef(state, 'name'); // 还是基于Proxy来获取
-      const ageRef = toRef(state, 'age'); // { get value() { return
-      console.log(nameRef.value); // 通过state.value来获取值
-      console.log(ageRef.value);
+      // const nameRef = toRef(state, 'name'); // 还是基于Proxy来获取
+      // const ageRef = toRef(state, 'age');
+      // console.log(nameRef.value); // 通过state.value来获取值
+      // console.log(ageRef.value);
+      // let { name, age } = toRefs(state);
+      // console.log(name, age);
+
+      // 模板中，直接使用响应式变量，不需要添加.value，就是使用了这个API
+      let proxy = proxyRefs({ ...toRefs(state), a: 100 });
+      // proxy.age = 100; // proxy.age.value = 100;
+      proxy.a = 200;
+      effect(() => {
+        console.log(proxy.name, proxy.age, proxy.a);
+      });
     </script>
   </body>
 </html>
