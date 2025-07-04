@@ -1,3 +1,4 @@
+import { DirtyLevels } from "./contants";
 import { activeEffect, trackEffect } from "./effect";
 
 const targetMap = new WeakMap(); // 存放依赖收集的关系
@@ -44,6 +45,15 @@ export function trigger(target, key, newValue, oldValue) {
 }
 export function triggerEffects(dep) {
   for (const effect of dep.keys()) {
+
+    // 当前这个值是不脏的，但是触发更新需要将值变为脏值
+    // if (effect._dirtyLevel < DirtyLevels.Dirty) {
+    //   effect._dirtyLevel = DirtyLevels.Dirty;
+    // }
+    if (!effect.dirty) {
+      effect.dirty = true;
+    }
+
     if (effect.scheduler) {
       if (!effect._runnings) { // 如果effect不是执行的状态，才能执行
         effect.scheduler(); // effect.run();
