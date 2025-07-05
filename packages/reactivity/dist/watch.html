@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>watch</title>
+</head>
+
+<body>
+    <div id="app"></div>
+    <script type="module">
+        // 这是原生的
+        // import {
+        //     reactive,
+        //     watch,
+        //     watchEffect,
+        // } from '/node_modules/vue/dist/vue.runtime.esm-browser.js'; // watch api被放到了运行时的包中
+        import {
+            reactive,
+            watch
+        } from './reactivity.js'
+        const state = reactive({
+            name: 'pb',
+            age: 30,
+            address: {
+                city: 'shanghai',
+                street: 'xuhui',
+            },
+        });
+        // 如果监听的是一个对象，是看不到它的变化的，因为 
+        // new ReactiveEffect(getter, scheduler
+        watch(state, // getter
+            (newValue, oldValue) => { // scheduler
+                console.log('watch', newValue, oldValue);
+            },
+            {
+                deep: true, // 默认是false，启用深度监听；修改为false后，只会监听一级属性的变化
+            });
+        // setTimeout(() => {
+        //     state.name = 'handsome pb';
+        // }, 1000);
+        setTimeout(() => {
+            state.address.city = 'beijing';
+        }, 1000);
+    </script>
+</body>
+
+</html>
