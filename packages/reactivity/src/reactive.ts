@@ -1,6 +1,6 @@
-import { isObject } from "@vue/shared";
-import { mutableHandlers } from "./baseHandler";
-import { ReactiveFlags } from './contants'
+import { isObject } from '@vue/shared';
+import { mutableHandlers } from './baseHandler';
+import { ReactiveFlags } from './constants';
 
 // 用于记录我们的代理后的结果，可以复用（同一个对象代理多次还是得到的同个（proxy）对象）
 const reactiveMap = new WeakMap(); // WeakMap防止内存泄漏？
@@ -8,7 +8,7 @@ const reactiveMap = new WeakMap(); // WeakMap防止内存泄漏？
 export function reactive(target) {
   return createReactiveObject(target);
 }
-export function shallowReactive(target) { }
+export function shallowReactive(target) {}
 
 function createReactiveObject(target) {
   // 统一判读，响应式对象必须是对象才可以

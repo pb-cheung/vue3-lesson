@@ -1,7 +1,7 @@
 import { isObject } from '@vue/shared/src';
 import { reactive } from './reactive';
-import { track, trigger } from './reactiveEffect'
-import { ReactiveFlags } from './contants'
+import { track, trigger } from './reactiveEffect';
+import { ReactiveFlags } from './constants';
 
 // Proxy 需要搭配 Reflect 来使用
 export const mutableHandlers: ProxyHandler<Record<any, any>> = {
@@ -15,9 +15,9 @@ export const mutableHandlers: ProxyHandler<Record<any, any>> = {
     track(target, key); // 收集这个对象上的这个属性，和effect关联在一起
     // console.log(activeEffect, key);
 
-
     let res = Reflect.get(target, key, receiver);
-    if (isObject(res)) { // 当取的值也是对象的时候，需要对这个对象再进行代理，递归代理，懒代理
+    if (isObject(res)) {
+      // 当取的值也是对象的时候，需要对这个对象再进行代理，递归代理，懒代理
       return reactive(res);
     }
     return res;
