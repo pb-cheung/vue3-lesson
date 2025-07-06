@@ -1,13 +1,12 @@
-import { activeEffect, trackEffect } from "./effect";
-import { toReactive } from "./reactive";
-import { createDep, triggerEffects } from "./reactiveEffect";
+import { activeEffect, trackEffect } from './effect';
+import { toReactive } from './reactive';
+import { createDep, triggerEffects } from './reactiveEffect';
 
 // reactive shallowReactive
 // ref shallowRef
 export function ref(value) {
   return createRef(value);
 }
-
 
 export function createRef(value) {
   return new RefImpl(value);
@@ -19,7 +18,7 @@ class RefImpl {
   public dep; // 用于收集对应的effect
 
   constructor(public rawValue) {
-    this._value = toReactive(rawValue)
+    this._value = toReactive(rawValue);
   }
 
   get value() {
@@ -40,7 +39,7 @@ export function trackRefValue(ref) {
     trackEffect(
       activeEffect,
       (ref.dep = createDep(() => (ref.dep = undefined), 'undefined'))
-    )
+    );
   }
 }
 export function triggerRefValue(ref) {
@@ -52,10 +51,9 @@ export function triggerRefValue(ref) {
 
 // toRef , toRefs
 
-
 class ObjectRefImpl {
   public __v_isRef = true; // 增加ref标识
-  constructor(public _object, public _key) { }
+  constructor(public _object, public _key) {}
   get value() {
     return this._object[this._key];
   }
@@ -84,12 +82,17 @@ export function proxyRefs(objectWithRef) {
     set(target, key, value, receiver) {
       const oldValue = target[key];
 
-      if (oldValue.__v_isRef) { // 如果老值是ref 需要给ref赋值
+      if (oldValue.__v_isRef) {
+        // 如果老值是ref 需要给ref赋值
         oldValue.value = value;
         return true;
       } else {
-        return Reflect.set(target, key, value, receiver)
+        return Reflect.set(target, key, value, receiver);
       }
-    }
-  })
+    },
+  });
+}
+
+export function isRef(value) {
+  return value && value.__v_isRef;
 }

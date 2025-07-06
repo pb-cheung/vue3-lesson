@@ -10,15 +10,18 @@
     <div id="app"></div>
     <script type="module">
         // 这是原生的
+        import {
+            effect,
+            reactive,
+            watch,
+            watchEffect,
+        } from '/node_modules/vue/dist/vue.runtime.esm-browser.js'; // watch api被放到了运行时的包中
         // import {
         //     reactive,
+        //     ref,
         //     watch,
-        //     watchEffect,
-        // } from '/node_modules/vue/dist/vue.runtime.esm-browser.js'; // watch api被放到了运行时的包中
-        import {
-            reactive,
-            watch
-        } from './reactivity.js'
+        //     watchEffect
+        // } from './reactivity.js'
         const state = reactive({
             name: 'pb',
             age: 30,
@@ -28,20 +31,80 @@
             },
         });
         // 如果监听的是一个对象，是看不到它的变化的，因为 
-        // new ReactiveEffect(getter, scheduler
-        watch(state, // getter
-            (newValue, oldValue) => { // scheduler
-                console.log('watch', newValue, oldValue);
-            },
-            {
-                deep: true, // 默认是false，启用深度监听；修改为false后，只会监听一级属性的变化
-            });
+        // new ReactiveEffect(getter, scheduler)
+        // watch(state, // getter
+        //     (newValue, oldValue) => { // scheduler
+        //         console.log('watch', newValue, oldValue);
+        //     },
+        //     {
+        //         deep: true, // 默认是false，启用深度监听；修改为false后，只会监听一级属性的变化
+        //     });
         // setTimeout(() => {
         //     state.name = 'handsome pb';
         // }, 1000);
+        // setTimeout(() => {
+        //     state.address.city = 'beijing';
+        // }, 1000);
+
+        // 监听一个ref对象
+        // const name = ref('pb');
+        // watch(
+        //     name, // getter
+        //     (newValue, oldValue) => {
+        //         console.log('watch', newValue, oldValue);
+        //     },
+        //     {
+        //         deep: true,
+        //     });
+        // setTimeout(() => {
+        //     name.value = 'handsome pb';
+        // }, 1000);
+
+        // 监听一个对象的属性，监听的值为一个取值的getter的形式
+        // watch(
+        //     () => state.name,
+        //     (newValue, oldValue) => {
+        //         console.log('watch', newValue, oldValue);
+        //     },
+        //     {
+        //         deep: true,
+        //     }
+        // );
+        // setTimeout(() => {
+        //     state.name = 'handsome pb';
+        // }, 1000);
+
+        // immediate参数
+        // watch(
+        //     () => state.name,
+        //     (newValue, oldValue) => {
+        //         console.log('watch', newValue, oldValue);
+        //     },
+        //     {
+        //         deep: true,
+        //         immediate: true, // 让watch立即执行一次
+        //     }
+        // );
+        // setTimeout(() => {
+        //     state.name = 'handsome pb';
+        // }, 1000);
+
+        // watchEffect
+        // 实现为：new ReactiveEffect(getter, getter)
+        watchEffect(() => {
+            console.log('name is: ' + state.name + ', age is: ' + state.age);
+        });
         setTimeout(() => {
-            state.address.city = 'beijing';
+            state.name = 'HandsomePb';
         }, 1000);
+        // 使用effect获得watchEffect等价的效果：
+        const runner = effect(() => {
+            console.log('effect function ' + state.name + ', ' + state.age);
+        }, {
+            scheduler() {
+                runner();
+            }
+        })
     </script>
 </body>
 

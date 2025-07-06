@@ -1,9 +1,16 @@
-import { isObject } from '@vue/shared';
+import { isFunction, isObject } from '@vue/shared';
 import { ReactiveEffect } from './effect';
+import { isReactive } from './reactive';
+import { isRef } from './ref';
 
 export function watch(source, cb, options = {} as any) {
   // watchEffect 也是基于doWatch来实现的
   return doWatch(source, cb, options);
+}
+
+export function watchEffect(source, options = {}) {
+  // 没有cb的情况，就是watchEffect
+  return doWatch(source, null, options as any);
 }
 
 function traverse(source, depth, currentDepth = 0, seen = new Set()) {
@@ -29,20 +36,39 @@ function traverse(source, depth, currentDepth = 0, seen = new Set()) {
   }
   return source; // 遍历就会触发每个属性的getter
 }
-function doWatch(source, cb, { deep }) {
+function doWatch(source, cb, { deep, immediate }) {
   const reactiveGetter = (source) =>
     traverse(source, deep === false ? 1 : undefined);
 
   // 产生一个可以给ReactiveEffect使用的getter，需要对这个对象进行取值操作，会关联当前的reactiveEffect
-  const getter = () => reactiveGetter(source);
+  let getter;
+  if (isReactive(source)) {
+    getter = () => reactiveGetter(source);
+  } else if (isRef(source)) {
+    getter = () => source.value;
+  } else if (isFunction(source)) {
+    getter = source;
+  }
   let oldValue;
-
   const job = () => {
-    const newValue = effect.run();
-    cb(newValue, oldValue);
-    oldValue = newValue;
+    if (cb) {
+      const newValue = effect.run();
+      cb(newValue, oldValue);
+      oldValue = newValue;
+    } else {
+      effect.run();
+    }
   };
-
   const effect = new ReactiveEffect(getter, job);
-  oldValue = effect.run();
+  if (cb) {
+    if (immediate) {
+      // 立即先执行一次回调，传递新值和老值
+      job();
+    } else {
+      oldValue = effect.run();
+    }
+  } else {
+    // watchEffect
+    effect.run(); // 直接执行即可
+  }
 }
