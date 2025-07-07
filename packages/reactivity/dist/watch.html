@@ -1,111 +1,198 @@
 <!DOCTYPE html>
 <html>
-
-<head>
+  <head>
     <meta charset="UTF-8" />
     <title>watch</title>
-</head>
+  </head>
 
-<body>
+  <body>
     <div id="app"></div>
     <script type="module">
-        // 这是原生的
-        import {
-            effect,
-            reactive,
-            watch,
-            watchEffect,
-        } from '/node_modules/vue/dist/vue.runtime.esm-browser.js'; // watch api被放到了运行时的包中
-        // import {
-        //     reactive,
-        //     ref,
-        //     watch,
-        //     watchEffect
-        // } from './reactivity.js'
-        const state = reactive({
-            name: 'pb',
-            age: 30,
-            address: {
-                city: 'shanghai',
-                street: 'xuhui',
-            },
+      // 这是原生的
+      // import {
+      //   effect,
+      //   reactive,
+      //   ref,
+      //   watch,
+      //   watchEffect,
+      // } from '/node_modules/vue/dist/vue.runtime.esm-browser.js'; // watch api被放到了运行时的包中
+
+      // 这是自己的实现
+      import {
+        effect,
+        reactive,
+        ref,
+        watch,
+        watchEffect,
+      } from './reactivity.js';
+      // lesson-15 watch
+      const state = reactive({
+        name: 'pb',
+        age: 30,
+        address: {
+          city: 'shanghai',
+          street: 'xuhui',
+        },
+      });
+      // 如果监听的是一个对象，是看不到它的变化的，因为
+      // new ReactiveEffect(getter, scheduler)
+      // watch(state, // getter
+      //     (newValue, oldValue) => { // scheduler
+      //         console.log('watch', newValue, oldValue);
+      //     },
+      //     {
+      //         deep: true, // 默认是false，启用深度监听；修改为false后，只会监听一级属性的变化
+      //     });
+      // setTimeout(() => {
+      //     state.name = 'handsome pb';
+      // }, 1000);
+      // setTimeout(() => {
+      //     state.address.city = 'beijing';
+      // }, 1000);
+
+      // 监听一个ref对象
+      // const name = ref('pb');
+      // watch(
+      //     name, // getter
+      //     (newValue, oldValue) => {
+      //         console.log('watch', newValue, oldValue);
+      //     },
+      //     {
+      //         deep: true,
+      //     });
+      // setTimeout(() => {
+      //     name.value = 'handsome pb';
+      // }, 1000);
+
+      // 监听一个对象的属性，监听的值为一个取值的getter的形式
+      // watch(
+      //     () => state.name,
+      //     (newValue, oldValue) => {
+      //         console.log('watch', newValue, oldValue);
+      //     },
+      //     {
+      //         deep: true,
+      //     }
+      // );
+      // setTimeout(() => {
+      //     state.name = 'handsome pb';
+      // }, 1000);
+
+      // immediate参数
+      // watch(
+      //     () => state.name,
+      //     (newValue, oldValue) => {
+      //         console.log('watch', newValue, oldValue);
+      //     },
+      //     {
+      //         deep: true,
+      //         immediate: true, // 让watch立即执行一次
+      //     }
+      // );
+      // setTimeout(() => {
+      //     state.name = 'handsome pb';
+      // }, 1000);
+
+      // lesseson-16: watchEffect
+      // 实现为：new ReactiveEffect(getter, getter)
+      // watchEffect(() => {
+      //   console.log('name is: ' + state.name + ', age is: ' + state.age);
+      // });
+      // setTimeout(() => {
+      //   state.name = 'HandsomePb';
+      // }, 1000);
+      // // 使用effect获得watchEffect等价的效果：
+      // const runner = effect(
+      //   () => {
+      //     console.log('effect function ' + state.name + ', ' + state.age);
+      //   },
+      //   {
+      //     scheduler() {
+      //       runner();
+      //     },
+      //   }
+      // );
+
+      // lesson-17 清理函数
+      // const unwatch = watch(
+      //   () => state.name,
+      //   (newValue, oldValue) => {
+      //     console.log('lesson-17 watch: ', newValue, oldValue);
+      //   },
+      //   {
+      //     deep: true,
+      //     immediate: true, // 让watch立即执行一次
+      //   }
+      // );
+      // unwatch();
+      // setTimeout(() => {
+      //   state.name = 'handsome pb';
+      // }, 1000);
+
+      // lesson-17
+      const val = ref('');
+      let timer = 3000;
+      function getData(timer) {
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            resolve(timer);
+          }, timer);
         });
-        // 如果监听的是一个对象，是看不到它的变化的，因为 
-        // new ReactiveEffect(getter, scheduler)
-        // watch(state, // getter
-        //     (newValue, oldValue) => { // scheduler
-        //         console.log('watch', newValue, oldValue);
-        //     },
-        //     {
-        //         deep: true, // 默认是false，启用深度监听；修改为false后，只会监听一级属性的变化
-        //     });
-        // setTimeout(() => {
-        //     state.name = 'handsome pb';
-        // }, 1000);
-        // setTimeout(() => {
-        //     state.address.city = 'beijing';
-        // }, 1000);
+      }
+      // 解决“竞态”问题，传统方法
+      let queue = [];
+      // watch(
+      //   val,
+      //   async () => {
+      //     // “竞态”问题的一种解决方法，利用闭包特性，每个watch回调函数都会产生一个自己的执行上下文，包含flag变量
+      //     // 第二次执行的 会将第一次的flag变为false
+      //     let flag = true;
+      //     queue.forEach((fn) => {
+      //       fn();
+      //     });
+      //     queue.push(() => (flag = false)); // watch回调函数运行结束后，仍然可以通过全局变量queue访问flag
 
-        // 监听一个ref对象
-        // const name = ref('pb');
-        // watch(
-        //     name, // getter
-        //     (newValue, oldValue) => {
-        //         console.log('watch', newValue, oldValue);
-        //     },
-        //     {
-        //         deep: true,
-        //     });
-        // setTimeout(() => {
-        //     name.value = 'handsome pb';
-        // }, 1000);
+      //     timer -= 1000; // 每调用一次请求，请求时间就减少1秒
+      //     let res = await getData(timer);
 
-        // 监听一个对象的属性，监听的值为一个取值的getter的形式
-        // watch(
-        //     () => state.name,
-        //     (newValue, oldValue) => {
-        //         console.log('watch', newValue, oldValue);
-        //     },
-        //     {
-        //         deep: true,
-        //     }
-        // );
-        // setTimeout(() => {
-        //     state.name = 'handsome pb';
-        // }, 1000);
+      //     if (flag) {
+      //       app.innerHTML = res;
+      //     }
+      //   },
+      //   {
+      //     flush: 'sync',
+      //   }
+      // );
 
-        // immediate参数
-        // watch(
-        //     () => state.name,
-        //     (newValue, oldValue) => {
-        //         console.log('watch', newValue, oldValue);
-        //     },
-        //     {
-        //         deep: true,
-        //         immediate: true, // 让watch立即执行一次
-        //     }
-        // );
-        // setTimeout(() => {
-        //     state.name = 'handsome pb';
-        // }, 1000);
+      // “竞态”问题，使用onCleanup选项
+      debugger;
+      watch(
+        val,
+        async (newValue, oldValue, onCleanup) => {
+          let flag = true;
+          timer -= 1000; // 每调用一次请求，请求时间就减少1秒
+          onCleanup(() => {
+            flag = false;
+          });
 
-        // watchEffect
-        // 实现为：new ReactiveEffect(getter, getter)
-        watchEffect(() => {
-            console.log('name is: ' + state.name + ', age is: ' + state.age);
-        });
-        setTimeout(() => {
-            state.name = 'HandsomePb';
-        }, 1000);
-        // 使用effect获得watchEffect等价的效果：
-        const runner = effect(() => {
-            console.log('effect function ' + state.name + ', ' + state.age);
-        }, {
-            scheduler() {
-                runner();
-            }
-        })
+          let res = await getData(timer);
+
+          if (flag) {
+            app.innerHTML = res;
+          }
+        },
+        {
+          flush: 'sync',
+        }
+      );
+
+      // 第一次请求：2秒后返回的2000
+      // 第二次请求：1秒后返回的1000
+      // 构造的例子不太好，实际就是模拟了后发出的请求先返回的状况
+      setTimeout(() => {
+        val.value = 'a';
+        val.value = 'b';
+      }, 1000);
     </script>
-</body>
-
+  </body>
 </html>

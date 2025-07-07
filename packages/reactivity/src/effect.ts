@@ -46,7 +46,7 @@ export class ReactiveEffect {
 
   // fn: 用户编写的函数
   // 如果fn中依赖的数据发生变化后，需要重新调用 -> run()
-  constructor(public fn, public scheduler) {}
+  constructor(public fn, public scheduler) { }
   // TypeScript 的语法糖，简化代码。在 Vue 3 或其他现代框架源码中经常能看到这种写法。
   // 在 TypeScript 中，直接通过 public、private、protected 修饰构造函数参数时，会同时完成两个操作：
   // 自动在类实例上声明属性
@@ -88,7 +88,11 @@ export class ReactiveEffect {
     }
   }
   stop() {
-    this.active = false; // 后续来实现
+    if (this.active) {
+      this.active = false; // 后续来实现
+      preCleanEffect(this);
+      postCleanEffect(this);
+    }
   }
 }
 

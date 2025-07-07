@@ -35,10 +35,11 @@ class RefImpl {
 }
 
 export function trackRefValue(ref) {
+  debugger
   if (activeEffect) {
     trackEffect(
       activeEffect,
-      (ref.dep = createDep(() => (ref.dep = undefined), 'undefined'))
+      (ref.dep = ref.dep || createDep(() => (ref.dep = undefined), 'undefined'))
     );
   }
 }
@@ -53,7 +54,7 @@ export function triggerRefValue(ref) {
 
 class ObjectRefImpl {
   public __v_isRef = true; // 增加ref标识
-  constructor(public _object, public _key) {}
+  constructor(public _object, public _key) { }
   get value() {
     return this._object[this._key];
   }
