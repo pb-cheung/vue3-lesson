@@ -35,7 +35,6 @@ class RefImpl {
 }
 
 export function trackRefValue(ref) {
-  debugger
   if (activeEffect) {
     trackEffect(
       activeEffect,
