@@ -3,5 +3,5 @@
 
 node_modules/
 packages/**/node_modules/
-packages/reactivity/dist/
+packages/reactivity/dist/**
 !packages/reactivity/dist/*.html
