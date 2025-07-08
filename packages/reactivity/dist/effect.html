@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>effect</title>
+  </head>
+
+  <body>
+    <div id="app"></div>
+    <script type="module">
+      // 这是原生的
+      // import {
+      //   reactive,
+      //   effect,
+      // } from '/node_modules/vue/dist/vue.esm-browser.js';
+
+      // 这是自己实现调试用的
+      import { reactive, effect } from './reactivity.js';
+
+      let obj = { name: 'pb', age: 30 };
+      let state = reactive(obj);
+      // effect(() => {
+      //   app.innerHTML = `姓名：${state.name} 姓名：${state.age}`;
+      // });
+      // setTimeout(() => {
+      //   state.age++;
+      // }, 1000);
+
+      effect(() => {
+        console.log('f1 ', state.name);
+
+        effect(() => {
+          console.log('f2 ', state.name);
+        });
+
+        console.log(state.age);
+      });
+    </script>
+  </body>
+</html>
