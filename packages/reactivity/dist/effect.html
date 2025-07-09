@@ -1,40 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>effect</title>
-  </head>
 
-  <body>
-    <div id="app"></div>
-    <script type="module">
-      // 这是原生的
-      // import {
-      //   reactive,
-      //   effect,
-      // } from '/node_modules/vue/dist/vue.esm-browser.js';
+<head>
+  <meta charset="UTF-8" />
+  <title>effect</title>
+</head>
 
-      // 这是自己实现调试用的
-      import { reactive, effect } from './reactivity.js';
+<body>
+  <div id="app"></div>
+  <script type="module">
+    // 这是原生的
+    // import {
+    //   reactive,
+    //   effect,
+    // } from '/node_modules/vue/dist/vue.esm-browser.js';
 
-      let obj = { name: 'pb', age: 30 };
-      let state = reactive(obj);
-      // effect(() => {
-      //   app.innerHTML = `姓名：${state.name} 姓名：${state.age}`;
-      // });
-      // setTimeout(() => {
-      //   state.age++;
-      // }, 1000);
+    // 这是自己实现调试用的
+    import { reactive, effect } from './reactivity.js';
 
-      effect(() => {
-        console.log('f1 ', state.name);
+    let obj = { name: 'pb', age: 30 };
+    let state = reactive(obj);
+    // effect(() => {
+    //   app.innerHTML = `姓名：${state.name} 姓名：${state.age}`;
+    // });
+    // setTimeout(() => {
+    //   state.age++;
+    // }, 1000);
 
-        effect(() => {
-          console.log('f2 ', state.name);
-        });
+    // effect嵌套调用示例
+    // effect(() => {
+    //   console.log('f1 ', state.name);
 
-        console.log(state.age);
-      });
-    </script>
-  </body>
+    //   effect(() => {
+    //     console.log('f2 ', state.name);
+    //   });
+
+    //   console.log(state.age);
+    // });
+
+    effect(() => {
+      app.innerHTML = `姓名：${state.name} 年龄：${state.age}`;
+    });
+    effect(() => {
+      app.innerHTML = `姓名：${state.name} `;
+    });
+    setTimeout(() => {
+      state.age++;
+    }, 1000);
+  </script>
+</body>
+
 </html>
