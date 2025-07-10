@@ -36,7 +36,7 @@ function postCleanEffect(effect) {
 }
 // effectScope.stop(); // 停止所有的effect不参加响应式处理
 export class ReactiveEffect {
-  _trackId = 0; // 用于记录当前effect执行了几次
+  _trackId = 0; // 用于记录当前effect.fn执行了几次
   _depsLength = 0;
   _runnings = 0; // 是否正在执行
   _dirtyLevel = DirtyLevels.Dirty;

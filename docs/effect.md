@@ -69,6 +69,52 @@ f1.fn()
 - 创建了应用内唯一的`WeakMap`存储依赖关系，依赖关系是树状的（根节点 WeakMap，第 1 层节点响应式对象，第 2 层响应式对象的各个属性，第 3 层...）
 - 第 1 层：响应式对象本身作为键值，创建一个 Map 作为值，放入 WeakMap。
 - 第 2 层：类型是 Map，对象属性作为键值，dep 作为值（dep 也是一个 Map）。
-- 第 3 层：类型是 Map，引用了属性的 effect 作为键值，effect 的 trackId 作为值。
+- 第 3 层：类型是 Map，引用了属性的 effect 作为键值，effect 的 trackId 作为值。（低版本中是Set，为了方便清理改为了Map）
 
 ![vue3依赖的数据结构](./images/vue3-dep-data.webp)
+
+
+
+## 依赖清理
+
+也可以叫“依赖重建”
+
+问题：effect.fn中有条件语句，且不同分支中引用的响应式对象属性不同，然后修改属性条件判断发生变化，这种情况如果不做处理，可能会造成依赖冗余，进而出现非预期的表现（effect.fn运行）。
+
+示例：
+```javascript
+// 依赖清理示例
+    let obj = { name: 'pb', age: 30, flag: true };
+    let state = reactive(obj);
+    effect(() => {
+      console.log('effect.fn runner'); // 打印3次
+      app.innerHTML = state.flag ? state.name: state.age;
+    });
+    // 依赖数据结构：{ obj: { flag: {effect}, name: {effect} } }
+    setTimeout(() => {
+      state.flag = false;
+
+      setTimeout(() => {
+        console.log('修改属性后， 不应该触发 effect 重新执行了')
+        state.name = 'handsome pb';
+      }, 1000); 
+      // 更新name，依赖数据中仍然有name，所以effect.fn会运行，这样不合理，因为effect.fn中都没再使用name了，此次运行没有没有意义
+    }, 1000);
+    // state.flag 变化后，effect.fn运行，dep数据结构更新
+    // 依赖数据结构：{ obj: { flag: {effect}, name: {effect}, age: {effect} } }
+    // 问题：name不需要依赖收集了，因为不再被使用了
+    // 依赖数据结构需要变为：{ obj: { flag: {effect}, age: {effect} } }
+```
+解决：
+  1. 依赖需要重建，重建操作需要在哪个环节开始呢？`effect.fn`运行重新（声明后先运行了一次，创建了依赖关系）运行前，运行过程中`Proxy.get` => `track` => `trackEffect`会再次走创建依赖流程。
+  这里具体的重建前置操作就是：“将effect.deps的数组长度即`effect._depsLength`重置为0”。
+  2. 清理的实现，我们要解决的问题是同个effect（ActiveEffect实例）上依赖的属性发生了变化，这些属性对应的就是`effect.deps`，我们需要把不再用到的属性的dep移除，`effect.deps`数组更新。更新的策略（diff算法）：是从头开始比对，每次trackEffect中接收一个属性的dep和数组中按照索引升序取到的旧的dep做比对，
+      * 如果一致，说明当前属性在两次effect.fn中都有使用到，依赖关系不做修改，`effect._depsLength`自增用于下次比对
+      * 如果不一致，说明旧的dep对应的属性不再被当前effect使用了，需要双向清理（依赖关系是双向的，清理重建也是双向的）
+        - 新的dep赋值给deps数组当前比对的位置覆盖旧的dep，`effect.deps[effect._depsLength++] = dep;`
+        - 旧的dep删除掉effect，`oldDep.delete(effect)`
+
+
+## 依赖重复收集
+
+问题：一个effect.fn中多次引用了同个属性，造成依赖关系重复添加（dep中set了同个effect(`ReactiveEffect`实例)多次）

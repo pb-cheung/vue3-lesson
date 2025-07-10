@@ -18,8 +18,8 @@
     // 这是自己实现调试用的
     import { reactive, effect } from './reactivity.js';
 
-    let obj = { name: 'pb', age: 30 };
-    let state = reactive(obj);
+    // let obj = { name: 'pb', age: 30 };
+    // let state = reactive(obj);
     // effect(() => {
     //   app.innerHTML = `姓名：${state.name} 姓名：${state.age}`;
     // });
@@ -38,15 +38,43 @@
     //   console.log(state.age);
     // });
 
+    // state.name的dep中会看到2个effect（ReactiveEffect实例），因为一下两个effect.fn中都用到了它
+    // state.age的dep中有1个effect，只有第一个effect.fn用到了它
+    // effect(() => {
+    //   app.innerHTML = `姓名：${state.name} 年龄：${state.age}`;
+    // });
+    // effect(() => {
+    //   app.innerHTML = `姓名：${state.name} `;
+    // });
+    // setTimeout(() => {
+    //   state.age++;
+    // }, 1000);
+
+    // 依赖清理示例
+    let obj = { name: 'pb', age: 30, flag: true };
+    let state = reactive(obj);
     effect(() => {
-      app.innerHTML = `姓名：${state.name} 年龄：${state.age}`;
+      console.log('effect.fn runner'); // 打印3次
+      app.innerHTML = state.flag ? state.name: state.age;
     });
-    effect(() => {
-      app.innerHTML = `姓名：${state.name} `;
-    });
+    // 依赖数据结构：{ obj: { flag: {effect}, name: {effect} } }
     setTimeout(() => {
-      state.age++;
+      state.flag = false;
+
+      setTimeout(() => {
+        console.log('修改属性后， 不应该触发 effect 重新执行了')
+        state.name = 'handsome pb';
+      }, 1000); 
+      // 更新name，依赖数据中仍然有name，所以effect.fn会运行，这样不合理，因为effect.fn中都没再使用name了
     }, 1000);
+    // state.flag 变化后，effect.fn运行，dep数据结构更新
+    // 依赖数据结构：{ obj: { flag: {effect}, name: {effect}, age: {effect} } }
+    // 问题：name不需要依赖收集了，因为不再被使用了
+    // 依赖数据结构需要变为：{ obj: { flag: {effect}, age: {effect} } }
+
+    // 解决：
+    // 1. 我们需要一个简易的diff算法，来比对不同分支切换的时候的差异（引用的属性）
+    // 2. 在effect.fn重新执行前，将上一次的依赖清除（effect.fn重新执行会重新搜集依赖）
   </script>
 </body>
 
