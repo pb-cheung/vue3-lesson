@@ -1,81 +1,148 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>effect</title>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <title>effect</title>
-</head>
+  <body>
+    <div id="app"></div>
+    <script type="module">
+      // 这是原生的
+      // import {
+      //   reactive,
+      //   effect,
+      // } from '/node_modules/vue/dist/vue.esm-browser.js';
 
-<body>
-  <div id="app"></div>
-  <script type="module">
-    // 这是原生的
-    // import {
-    //   reactive,
-    //   effect,
-    // } from '/node_modules/vue/dist/vue.esm-browser.js';
+      // 这是自己实现调试用的
+      import { reactive, effect } from './reactivity.js';
 
-    // 这是自己实现调试用的
-    import { reactive, effect } from './reactivity.js';
+      // let obj = { name: 'pb', age: 30 };
+      // let state = reactive(obj);
+      // effect(() => {
+      //   app.innerHTML = `姓名：${state.name} 姓名：${state.age}`;
+      // });
+      // setTimeout(() => {
+      //   state.age++;
+      // }, 1000);
 
-    // let obj = { name: 'pb', age: 30 };
-    // let state = reactive(obj);
-    // effect(() => {
-    //   app.innerHTML = `姓名：${state.name} 姓名：${state.age}`;
-    // });
-    // setTimeout(() => {
-    //   state.age++;
-    // }, 1000);
+      // effect嵌套调用示例
+      // effect(() => {
+      //   console.log('f1 ', state.name);
 
-    // effect嵌套调用示例
-    // effect(() => {
-    //   console.log('f1 ', state.name);
+      //   effect(() => {
+      //     console.log('f2 ', state.name);
+      //   });
 
-    //   effect(() => {
-    //     console.log('f2 ', state.name);
-    //   });
+      //   console.log(state.age);
+      // });
 
-    //   console.log(state.age);
-    // });
+      // state.name的dep中会看到2个effect（ReactiveEffect实例），因为一下两个effect.fn中都用到了它
+      // state.age的dep中有1个effect，只有第一个effect.fn用到了它
+      // effect(() => {
+      //   app.innerHTML = `姓名：${state.name} 年龄：${state.age}`;
+      // });
+      // effect(() => {
+      //   app.innerHTML = `姓名：${state.name} `;
+      // });
+      // setTimeout(() => {
+      //   state.age++;
+      // }, 1000);
 
-    // state.name的dep中会看到2个effect（ReactiveEffect实例），因为一下两个effect.fn中都用到了它
-    // state.age的dep中有1个effect，只有第一个effect.fn用到了它
-    // effect(() => {
-    //   app.innerHTML = `姓名：${state.name} 年龄：${state.age}`;
-    // });
-    // effect(() => {
-    //   app.innerHTML = `姓名：${state.name} `;
-    // });
-    // setTimeout(() => {
-    //   state.age++;
-    // }, 1000);
+      // // lesson-9 依赖清理示例1：需要进行清理的场景，清理的实现
+      // let obj = { name: 'pb', age: 30, flag: true };
+      // let state = reactive(obj);
+      // effect(() => {
+      //   console.log('effect.fn runner'); // 打印3次
+      //   app.innerHTML = state.flag ? state.name: state.age;
+      // });
+      // // 依赖数据结构：{ obj: { flag: {effect}, name: {effect} } }
+      // setTimeout(() => {
+      //   state.flag = false;
 
-    // 依赖清理示例
-    let obj = { name: 'pb', age: 30, flag: true };
-    let state = reactive(obj);
-    effect(() => {
-      console.log('effect.fn runner'); // 打印3次
-      app.innerHTML = state.flag ? state.name: state.age;
-    });
-    // 依赖数据结构：{ obj: { flag: {effect}, name: {effect} } }
-    setTimeout(() => {
-      state.flag = false;
+      //   setTimeout(() => {
+      //     console.log('修改属性后， 不应该触发 effect 重新执行了')
+      //     state.name = 'handsome pb';
+      //   }, 1000);
+      //   // 更新name，依赖数据中仍然有name，所以effect.fn会运行，这样不合理，因为effect.fn中都没再使用name了
+      // }, 1000);
+      // state.flag 变化后，effect.fn运行，dep数据结构更新
+      // 依赖数据结构：{ obj: { flag: {effect}, name: {effect}, age: {effect} } }
+      // 问题：name不需要依赖收集了，因为不再被使用了
+      // 依赖数据结构需要变为：{ obj: { flag: {effect}, age: {effect} } }
+      // 解决：
+      // 1. 我们需要一个简易的diff算法，来比对不同分支切换的时候的差异（引用的属性）
+      // 2. 在effect.fn重新执行前，将上一次的依赖清除（effect.fn重新执行会重新搜集依赖）
 
-      setTimeout(() => {
-        console.log('修改属性后， 不应该触发 effect 重新执行了')
-        state.name = 'handsome pb';
-      }, 1000); 
-      // 更新name，依赖数据中仍然有name，所以effect.fn会运行，这样不合理，因为effect.fn中都没再使用name了
-    }, 1000);
-    // state.flag 变化后，effect.fn运行，dep数据结构更新
-    // 依赖数据结构：{ obj: { flag: {effect}, name: {effect}, age: {effect} } }
-    // 问题：name不需要依赖收集了，因为不再被使用了
-    // 依赖数据结构需要变为：{ obj: { flag: {effect}, age: {effect} } }
+      // lesson-9 依赖清理示例2：后置清理
+      // let obj = { name: 'pb', age: 30, flag: true, address: 'shenzhen', area: 'nanshan' };
+      // let state = reactive(obj);
+      // effect(() => {
+      //   app.innerHTML = state.flag ? state.name + state.address + state.area : state.age;
+      // });
+      // // 依赖数据结构：{ obj: { flag: {effect}, name: {effect}, area: {effect}, age: {effect} } }
+      // // state.flag 变化后，依赖清理（从头开始比对，flag保留，name替换为age；新的fn运行结束旧的deps列表中剩下的直接删除）
+      // // 依赖数据结构应该变成这样：{ obj: { flag: {effect}, age: {effect} } }
+      // setTimeout(() => {
+      //   state.flag = false;
+      // }, 1000);
 
-    // 解决：
-    // 1. 我们需要一个简易的diff算法，来比对不同分支切换的时候的差异（引用的属性）
-    // 2. 在effect.fn重新执行前，将上一次的依赖清除（effect.fn重新执行会重新搜集依赖）
-  </script>
-</body>
+      // 依赖重复收集示例
+      // let obj = { name: 'pb', age: 30, flag: true };
+      // let state = reactive(obj);
+      // effect(() => {
+      //   app.innerHTML = state.flag + ','+ state.flag + ','+state.flag;
+      // });
+      // setTimeout(() => {
+      //   state.flag = false;
+      // });
+      // 问题：state.flag 被引用了3次，相应的也会进行3次依赖收集
+      // dep.set(effect, _trackId) // 这个添加是没问题的，因为数据结构式Map，key值相同，进行set不会添加新条目
+      // 双向依赖另外一个方向就会有问题，effect.deps 添加 dep，会造成effect实例上重复添加相同属性的dep
 
+      // lesson-10 effect调度器的作用和实现
+      // let obj = { name: 'pb', age: 30, flag: true };
+      // const state = reactive(obj);
+      // let runner = effect(
+      //   () => {
+      //     // fn
+      //     app.innerHTML = state.flag ? state.name : state.age;
+      //   },
+      //   {
+      //     scheduler: () => {
+      //       console.log('数据更新了，不重新渲染，走自己的逻辑'); // AOP编程
+      //       runner(); // 重新渲染（执行fn）
+      //     },
+      //   }
+      // );
+      // lesson-10 effect 调度器的用法：合并多次修改
+      // const state = reactive({ count: 0 });
+      // let isScheduling = false;
+      // const runner = effect(
+      //   () => {
+      //     console.log(`最终 count: ${state.count}`);
+      //   },
+      //   {
+      //     scheduler: () => {
+      //       if (!isScheduling) {
+      //         isScheduling = true;
+      //         // 使用微任务延迟执行，合并多次修改
+      //         Promise.resolve().then(() => {
+      //           runner(); // 执行副作用（等价于 runner()）
+      //           isScheduling = false;
+      //         });
+      //       }
+      //     },
+      //   }
+      // );
+      // // 短时间内多次修改
+      // state.count = 1;
+      // state.count = 2;
+      // state.count = 3;
+      // state.count = 4;
+      // state.count = 5;
+      // // 最终 count: 0 // 刚注册执行一次
+      // // 最终 count: 5 // 所有同步的修改之后，执行一次
+    </script>
+  </body>
 </html>

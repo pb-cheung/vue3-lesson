@@ -14,7 +14,7 @@ export function effect(fn, options?) {
     Object.assign(_effect, options); // 用户传递的（scheduler）覆盖掉
   }
   const runner = _effect.run.bind(_effect);
-  runner.effect = _effect; // 可以在润方法上获取到effect的引用
+  runner.effect = _effect; // 可以在run方法上获取到effect的引用
   return runner; // 外界可以自己让其重新run
   // return _effect;
 }
