@@ -89,3 +89,21 @@ console.log(proxyPerson.aliasName);
 ```
 
 person 对象中 aliasName 属性是一个`getter`，handler.get 中使用`target[key]`方式访问，等价于`person.aliasName()`，getter 函数内的`this`指向 person 对象，`person.name` 不等价于 `proxyPerson.name，与预期不一致。`
+
+### 4. 深度代理
+
+示例：
+
+```javascript
+let obj = { name: 'pb', address: { n: 10010 } };
+const state = reactive(obj);
+effect(() => {
+  app.innerHTML = state.address.n;
+});
+setTimeout(() => {
+  state.address.n = 58001; // 只代理了对象的第一层的属性：name、address
+}, 1000);
+```
+
+解决：
+深度递归代理，在`Proxy.get`中，取得的值的类型是对象，使用`reactive`api 继续对取得的值添加响应式。
