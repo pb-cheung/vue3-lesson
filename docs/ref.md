@@ -7,7 +7,7 @@
 - `reactive`只能处理对象类型（对象、数组、Map、Set）
 - `ref`可以处理所有类型的数据，原始值（`primitive` value： string、number、boolean）和对象（底层调用 reactive）。
 
-### 语法
+## 语法
 
 `const state = ref(value)`
 
@@ -68,6 +68,60 @@ reactive(targetB);
 ```
 
 ref 中的处理于此不同，ref 把依赖直接放到了 RefImpl 对象上（dep 属性），因为 dep 从属于属性，目标是基础值可以理解为只有一个 key。
+
+## toRef/toRefs
+
+这两个 API 是为了弥补 reactive 的一个不足。
+
+通过**解构**和**展开**，得到的变量，不具有响应性。
+
+参考：[reactive()的局限性](https://cn.vuejs.org/guide/essentials/reactivity-fundamentals.html#limitations-of-reactive)
+
+> 3.对解构操作不友好：当我们将响应式对象的原始类型属性解构为本地变量时，或者将该属性传递给函数时，我们将丢失响应性连接:
+
+官方示例
+
+```javascript
+const state = reactive({ count: 0 });
+// 当解构时，count 已经与 state.count 断开连接
+let { count } = state;
+// 不会影响原始的 state
+count++;
+// 该函数接收到的是一个普通的数字
+// 并且无法追踪 state.count 的变化
+// 我们必须传入整个对象以保持响应性
+callSomeFunction(state.count);
+```
+
+展开运算符的例子：
+
+```javascript
+const state = reactive({ count: 0, name: 'Vue' });
+const newState = { ...state };
+```
+
+newState 不具有响应性，它是一个普通对象，因为：
+
+- 展开运算符是`浅拷贝`，newState 是由复制的 state 的属性的值组成的对象
+- 普通对象不具有响应性，Vue3 中响应性是通过 Proxy 实现的
+
+解决：
+
+```javascript
+import { reactive, toRefs } from 'vue';
+
+const state = reactive({ count: 0, name: 'Vue' });
+
+// const count = toRef(state, 'count');
+const { count, name } = toRefs(state);
+
+// 这样 count 和 name 仍然是响应式的 Ref 对象
+```
+
+通过 toRef 和 toRefs 得到的变量和源是双向关联的，修改变量的值`count.value ++`，源也会更新，
+修改源的值`state.value++`，变量的值也会更新。
+
+使用场景：组合式函数中，如果使用 reactive 声明了响应式对象，返回的时候使用 toRefs 包裹，使用方就可以放心的进行结构而不用担心丢失响应式。
 
 ## 问题
 
