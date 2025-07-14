@@ -1,7 +1,28 @@
+# IDE configurations
 .vscode
 .idea
 
+# Dependencies
 node_modules/
 packages/**/node_modules/
-packages/reactivity/dist/**
-!packages/reactivity/dist/*.html
+
+# Build outputs
+packages/**/dist/**
+# Keep HTML files for demo purposes
+!packages/**/dist/*.html
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
