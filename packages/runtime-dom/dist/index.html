@@ -10,12 +10,12 @@
     <div id="app"></div>
     <script type="module">
       import {
-        createRenderer,
-        render,
+        // createRenderer,
+        // render,
         h,
       } from '/node_modules/vue/dist/vue.runtime.esm-browser.js';
 
-      import { renderOptions } from './runtime-dom.js';
+      import { renderOptions, render } from './runtime-dom.js';
       // console.log("🚀 ~ createRenderer:", createRenderer, render, h)
 
       // 1. createRenderer 我们可以自己创建渲染器
@@ -47,18 +47,39 @@
       // renderer.render(ele, app);
 
       // 验证自己实现的rennderOptions
-      let ele = h(
-        'h1',
-        {
-          style: { color: 'red' },
-          class: 'abc',
-          onClick: () => alert(1),
-          a: 12,
-        },
-        'handsome pb'
-      );
-      const renderer = createRenderer(renderOptions);
-      renderer.render(ele, app);
+      // let ele = h(
+      //   'h1',
+      //   {
+      //     style: { color: 'red' },
+      //     class: 'abc',
+      //     onClick: () => alert(1),
+      //     a: 12,
+      //   },
+      //   'handsome pb'
+      // );
+      // const renderer = createRenderer(renderOptions);
+      // renderer.render(ele, app);
+
+      // runtime-core 实现
+      // let ele1 = h(
+      //   'h1',
+      //   {
+      //     style: { color: 'red' },
+      //     class: 'abc',
+      //     onClick: () => alert(1),
+      //     a: 12,
+      //   },
+      //   'handsome pb'
+      // );
+
+      // runtime-core 数组
+      let ele1 = h('h1', [h('p', 'hello'), h('p', 'world')]);
+      let ele2 = h('h2', { style: { color: 'green' } }, 'handsome pb');
+      render(ele1, app);
+
+      setTimeout(() => {
+        render(ele2, app);
+      }, 3000);
     </script>
   </body>
 </html>
