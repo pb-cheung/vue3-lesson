@@ -1,51 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>runtime-dom</title>
-</head>
+  </head>
 
-<body>
+  <body>
     <div id="app"></div>
     <script type="module">
-        import {
-            createRenderer,
-            render,
-            h
-        } from '/node_modules/@vue/runtime-dom/dist/runtime-dom.esm-browser.js'
-        // console.log("🚀 ~ createRenderer:", createRenderer, render, h)
+      import {
+        createRenderer,
+        render,
+        h,
+      } from '/node_modules/vue/dist/vue.runtime.esm-browser.js';
 
-        // 1. createRenderer 我们可以自己创建渲染器
-        // 2. render 用内置的渲染器来进行渲染
-        // 3. h方法可以创建一个虚拟DOM (type, propsOrChildren, children)
+      import { renderOptions } from './runtime-dom.js';
+      // console.log("🚀 ~ createRenderer:", createRenderer, render, h)
 
-        // runtime-dom 它的作用就是提供DOM API（提供一系列dom操作的api方法）
-        // runtime-dom -> @vue/runtime-core -> @vue/reactivity 
+      // 1. createRenderer 我们可以自己创建渲染器
+      // 2. render 用内置的渲染器来进行渲染
+      // 3. h方法可以创建一个虚拟DOM (type, propsOrChildren, children)
 
-        let ele = h("h1", 'handsome pb')
-        // console.log(ele)
+      // runtime-dom 它的作用就是提供DOM API（提供一系列dom操作的api方法）
+      // runtime-dom -> @vue/runtime-core -> @vue/reactivity
 
-        // render(ele, app)
+      // let ele = h('h1', 'handsome pb');
+      // console.log(ele)
 
-        const renderer = createRenderer({
-            createElement(type) {
-                console.log("🚀 ~ createElement ~ type:", type)
-                // 需要创建一个元素
-                // canvas 可以在这里调用响应的api渲染
-                return document.createElement(type);
-            },
-            setElementText(el, text) {
-                el.textContent = text;
-            },
-            insert(el, container) {
-                container.appendChild(el);
-            }
-        });
-        renderer.render(ele, app);
+      // render(ele, app)
 
+      // const renderer = createRenderer({
+      //   createElement(type) {
+      //     console.log('🚀 ~ createElement ~ type:', type);
+      //     // 需要创建一个元素
+      //     // canvas 可以在这里调用响应的api渲染
+      //     return document.createElement(type);
+      //   },
+      //   setElementText(el, text) {
+      //     el.textContent = text;
+      //   },
+      //   insert(el, container) {
+      //     container.appendChild(el);
+      //   },
+      // });
+      // renderer.render(ele, app);
+
+      // 验证自己实现的rennderOptions
+      let ele = h(
+        'h1',
+        {
+          style: { color: 'red' },
+          class: 'abc',
+          onClick: () => alert(1),
+          a: 12,
+        },
+        'handsome pb'
+      );
+      const renderer = createRenderer(renderOptions);
+      renderer.render(ele, app);
     </script>
-</body>
-
+  </body>
 </html>
