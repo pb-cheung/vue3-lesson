@@ -1,63 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>runtime-dom</title>
-  </head>
 
-  <body>
-    <div id="app"></div>
-    <script type="module">
-      import {
-        // createRenderer,
-        // render,
-        // h,
-        createVNode,
-      } from '/node_modules/vue/dist/vue.runtime.esm-browser.js';
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>runtime-dom</title>
+</head>
 
-      import { renderOptions, render, h } from './runtime-dom.js';
-      // console.log("🚀 ~ createRenderer:", createRenderer, render, h)
+<body>
+  <div id="app"></div>
+  <script type="module">
+    import {
+      // createRenderer,
+      // render,
+      // h,
+      createVNode,
+    } from '/node_modules/vue/dist/vue.runtime.esm-browser.js';
 
-      // 1. createRenderer 我们可以自己创建渲染器
-      // 2. render 用内置的渲染器来进行渲染
-      // 3. h方法可以创建一个虚拟DOM (type, propsOrChildren, children)
+    import { renderOptions, render, h } from './runtime-dom.js';
+    // console.log("🚀 ~ createRenderer:", createRenderer, render, h)
 
-      // runtime-dom 它的作用就是提供DOM API（提供一系列dom操作的api方法）
-      // runtime-dom -> @vue/runtime-core -> @vue/reactivity
+    // 1. createRenderer 我们可以自己创建渲染器
+    // 2. render 用内置的渲染器来进行渲染
+    // 3. h方法可以创建一个虚拟DOM (type, propsOrChildren, children)
 
-      // lesson-21 h函数
-      // 可能是一个（类型）参数，可以有2个（类型，属性/儿子），3个（标准的），超过3个（从第三个开始都是儿子）
-      // h(类型, 属性, 儿子)
-      // h(类型, 儿子)
+    // runtime-dom 它的作用就是提供DOM API（提供一系列dom操作的api方法）
+    // runtime-dom -> @vue/runtime-core -> @vue/reactivity
 
-      // 两个参数的情况 第二个参数既可以是儿子（虚拟节点）也可以是属性
-      // 1. 判断是虚拟节点（通过这个属性：__v_isVnode）=> 儿子
-      // 2. 第二个参数是个数组 => 儿子
-      // 3. 其他情况就是属性
-      // 4. 直接传递非对象的值——文本 => 儿子
-      // 5. 三个（以及三个以上）参数的情况，第二个参数只能是属性
-      // 6. 超过三个参数的情况，后面的都是儿子
+    // lesson-21 h函数
+    // 可能是一个（类型）参数，可以有2个（类型，属性/儿子），3个（标准的），超过3个（从第三个开始都是儿子）
+    // h(类型, 属性, 儿子)
+    // h(类型, 儿子)
 
-      // const ele = h('div', { a: 1 });
-      // const ele = h('div', h('div'));
-      // const ele = h('div', [h('div'), h('a')]);
-      // const ele = h('div', 'abc');
-      // const ele = h('div', { a: 1 }, 'abc');
-      // const ele = h('div', { a: 1 }, h('div'));
-      const ele = h(
-        'div',
-        { a: 1, style: { color: 'red' } },
-        h('div', 'div1'),
-        h('div', 'div2'),
-        // h('div', 'child3')
-        // createVNode 和 h可以互换，源码中编译后的结果全部采用了createVNode，方便做靶向更新。jsx编译后是h函数
-        createVNode('div', {}, 'child3')
-      );
-      // const ele = h('div', {}, 'a', 'b', 'c', 'd');
-      console.log('🚀 ~ file: h-function.html ~ line 41 ~ ele', ele);
+    // 两个参数的情况 第二个参数既可以是儿子（虚拟节点）也可以是属性
+    // 1. 判断是虚拟节点（通过这个属性：__v_isVnode）=> 儿子
+    // 2. 第二个参数是个数组 => 儿子
+    // 3. 其他情况就是属性
+    // 4. 直接传递非对象的值——文本 => 儿子
+    // 5. 三个（以及三个以上）参数的情况，第二个参数只能是属性
+    // 6. 超过三个参数的情况，后面的都是儿子
 
-      render(ele, app);
-    </script>
-  </body>
+    // const ele = h('div', { a: 1 });
+    // const ele = h('div', h('div'));
+    // const ele = h('div', [h('div'), h('a')]);
+    // const ele = h('div', 'abc');
+    // const ele = h('div', { a: 1 }, 'abc');
+    // const ele = h('div', { a: 1 }, h('div'));
+    // const ele = h(
+    //   'div',
+    //   { a: 1, style: { color: 'red' } },
+    //   h('div', 'div1'),
+    //   h('div', 'div2'),
+    //   // h('div', 'child3')
+    //   // createVNode 和 h可以互换，源码中编译后的结果全部采用了createVNode，方便做靶向更新。jsx编译后是h函数
+    //   createVNode('div', {}, 'child3')
+    // );
+    // // const ele = h('div', {}, 'a', 'b', 'c', 'd');
+    // console.log('🚀 ~ file: h-function.html ~ line 41 ~ ele', ele);
+
+
+    // lesson-22 两个元素的比较
+    // 情况1：第一次普通vnode，后一次null
+    // render第一个参数，第一次传了vnode，后面一次传了null，这种情况应该删除对应的dom元素
+    // render(h('h1', 'hello'), app);
+    // setTimeout(() => {
+    //   render(null, app);
+    // }, 3000)
+
+    // 普通的情况
+    // 两个节点之间是有diff的，看两个元素是否是同一个元素，如果是复用
+    // 如果不是同一个元素，删除老的换新的
+    // 情况2：第一次是和后一次元素不同（类型或key不同）
+    // const vnode1 = h('h1', 'hello');
+    // const vnode2 = h('div', 'world!');
+    // 情况3：前后两次元素相同，属性不同，复用元素，patch属性
+    const vnode1 = h('h1', { a: 1 }, 'hello');
+    const vnode2 = h('h1', { style: { color: 'red' } }, 'world!');
+    render(vnode1, app);
+    setTimeout(() => {
+      render(vnode2, app);
+    }, 3000)
+
+  </script>
+</body>
+
 </html>

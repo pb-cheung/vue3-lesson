@@ -27,3 +27,8 @@ export function createVnode(type, props, children?) {
 export function isVnode(value) {
   return value.__is_isVnode;
 }
+
+export function isSameVnode(n1, n2) {
+  // 标签类型和key都相等，认为是同个vnode
+  return n1.type === n2.type && n1.key === n2.key;
+}
