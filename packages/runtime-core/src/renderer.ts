@@ -62,11 +62,63 @@ export function createRenderer(renderOptions) {
     for (let key in newProps) {
       hostPatchProp(el, key, oldProps[key], newProps[key]);
     }
-    debugger;
     for (let key in oldProps) {
       if (!(key in newProps)) {
         //以前有，现在没有，要删除掉
         hostPatchProp(el, key, oldProps[key], null);
+      }
+    }
+  };
+
+  const unmountChildren = (children) => {
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+      unmount(child);
+    }
+  };
+  const patchChildren = (n1, n2, el) => {
+    // 儿子节点的情况：text/array/null
+    const c1 = n1.children;
+    const c2 = n2.children;
+
+    const prevShapeFlag = n1.shapeFlag;
+    const shapeFlag = n2.shapeFlag;
+
+    // 1. 新的是文本，老的是数组，移除老的子节点
+    // 2. 新的是文本，老的是文本，内容不同进行替换
+    // 3. 老的是数组，新的是数组，全量diff
+    // 4. 老的是数组，新的不是数组，移除老的子节点
+    // 5. 老的是文本，新的是空
+    // 6. 老的是文本，新的是数组
+
+    // 1. + 2.
+    if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
+      if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+        unmountChildren(c1);
+      }
+
+      if (c1 !== c2) {
+        hostSetElementText(el, c2);
+      }
+    } else {
+      if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+        if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+          // 3. 全量diff算法，两个数组比对
+          // TODO: diff
+          console.log('diff');
+        } else {
+          // 4.
+          unmountChildren(c1);
+        }
+      } else {
+        // 5.
+        if (prevShapeFlag & ShapeFlags.TEXT_CHILDREN) {
+          hostSetElementText(el, '');
+        }
+        // 6.
+        if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+          mountChildren(c2, el);
+        }
       }
     }
   };
@@ -80,6 +132,8 @@ export function createRenderer(renderOptions) {
 
     // hostPatchProp只针对一个属性进行处理，例如class、style、event、attr
     patchProps(oldProps, newProps, el);
+
+    patchChildren(n1, n2, el);
   };
   // 渲染走这里，更新也走这里
   const patch = (n1, n2, container) => {
@@ -109,7 +163,7 @@ export function createRenderer(renderOptions) {
     if (vnode === null) {
       // 我要移除当前容器中的dom元素
       if (container._vnode) {
-        console.log('🚀 ~ render ~ _vnode:', container._vnode);
+        // console.log('🚀 ~ render ~ _vnode:', container._vnode);
         unmount(container._vnode);
       }
     }

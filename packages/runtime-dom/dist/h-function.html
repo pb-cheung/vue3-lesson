@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>runtime-dom</title>
+  <title>h</title>
 </head>
 
 <body>
@@ -57,30 +57,6 @@
     // );
     // // const ele = h('div', {}, 'a', 'b', 'c', 'd');
     // console.log('🚀 ~ file: h-function.html ~ line 41 ~ ele', ele);
-
-
-    // lesson-22 两个元素的比较
-    // 情况1：第一次普通vnode，后一次null
-    // render第一个参数，第一次传了vnode，后面一次传了null，这种情况应该删除对应的dom元素
-    // render(h('h1', 'hello'), app);
-    // setTimeout(() => {
-    //   render(null, app);
-    // }, 3000)
-
-    // 普通的情况
-    // 两个节点之间是有diff的，看两个元素是否是同一个元素，如果是复用
-    // 如果不是同一个元素，删除老的换新的
-    // 情况2：第一次是和后一次元素不同（类型或key不同）
-    // const vnode1 = h('h1', 'hello');
-    // const vnode2 = h('div', 'world!');
-    // 情况3：前后两次元素相同，属性不同，复用元素，patch属性
-    const vnode1 = h('h1', { a: 1 }, 'hello');
-    const vnode2 = h('h1', { style: { color: 'red' } }, 'world!');
-    render(vnode1, app);
-    setTimeout(() => {
-      render(vnode2, app);
-    }, 3000)
-
   </script>
 </body>
 
