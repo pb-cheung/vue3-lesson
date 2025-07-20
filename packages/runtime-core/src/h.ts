@@ -13,7 +13,7 @@ export function h(type, propsOrChildren?, children?) {
         return createVnode(type, null, [propsOrChildren]);
       } else {
         // 属性 h('div', { a: 1 })
-        createVnode(type, propsOrChildren);
+        return createVnode(type, propsOrChildren);
       }
     }
     // 儿子是：数组|文本
