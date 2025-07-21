@@ -24,7 +24,7 @@ export function createRenderer(renderOptions) {
     }
   };
 
-  const mountElement = (vnode, container) => {
+  const mountElement = (vnode, container, anchor) => {
     const { type, children, props, shapeFlag } = vnode;
 
     // 第一次初始化的时候，我们把虚拟节点和真实dom创建关联，vnode.el = 真实dom
@@ -45,14 +45,14 @@ export function createRenderer(renderOptions) {
       mountChildren(children, el);
     }
 
-    hostInsert(el, container);
+    hostInsert(el, container, anchor);
     // hostCreateElement(vnode)
   };
 
-  const processElement = (n1, n2, container) => {
+  const processElement = (n1, n2, container, anchor) => {
     if (n1 === null) {
       // 初始化操作
-      mountElement(n2, container);
+      mountElement(n2, container, anchor);
     } else {
       patchElement(n1, n2, container);
     }
@@ -74,6 +74,120 @@ export function createRenderer(renderOptions) {
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
       unmount(child);
+    }
+  };
+
+  const patchKeyedChildren = (c1, c2, el) => {
+    // 比较两个儿子的差异，更新el
+    // 常用到的api：appendChild、removeChild、insertBefore
+    // [a,b,c,e,f,d]
+    // [a,b,d,q,f,d]
+
+    // 1. 减少比对范围，先从头开始比，再从尾部开始比较，确定不一样的范围
+    // 2. 从头比对，再从尾比对，如果有多余的或者新增的直接操作即可
+
+    // a/b/c
+    // a/b/d/e
+    let i = 0; // 开始比对的索引
+    let e1 = c1.length - 1; // 第一个数组的尾部索引 e = end
+    let e2 = c2.length - 1; // 第二个数组的尾部索引
+
+    // 从头部比较
+    while (i <= e1 && i <= e2) {
+      // 有任何一方循环结束了，就要终止比比较
+      const n1 = c1[i];
+      const n2 = c2[i];
+      if (isSameVnode(n1, n2)) {
+        patch(n1, n2, el); // 更新当前节点的属性和儿子（递归比较子节点）
+      } else {
+        break;
+      }
+      i++;
+    }
+
+    // [a/b/c]
+    // [d/e/b/c]
+    // 从尾部比较
+    while (i <= e1 && i <= e2) {
+      const n1 = c1[e1];
+      const n2 = c2[e2];
+      if (isSameVnode(n1, n2)) {
+        patch(n1, n2, el);
+      } else {
+        break;
+      }
+      e1--;
+      e2--;
+    }
+    // 处理增加和删除的特殊情况：[a,b,c] [a,b] | [c,a,b] [a,b]
+
+    // [a,b] [a,b,c] -> i = 2, e1 = 1, e2 = 2 -> i > e1 && i <= e2
+    // [a,b] [c,a,b] -> i = 0, e1 = -1, e2 = 0 -> i > e1 && i <= e2
+    if (i > e1) {
+      // 新的多
+      if (i <= e2) {
+        // 有插入的部分
+        const nextPos = e2 + 1; // 看一下当前元素下一个元素是否存在
+
+        let anchor = c2[nextPos]?.el;
+        while (i <= e2) {
+          patch(null, c2[i], el, anchor);
+          i++;
+        }
+      }
+    } else if (i > e2) {
+      // 老的多
+      if (i <= e1) {
+        while (i <= e1) {
+          unmount(c1[i]); // 将元素一个个删除
+          i++;
+        }
+      }
+    }
+
+    // 以上确认不变化的节点，并且对插入和移除做了处理
+
+    // 后面就是特殊的比对方式了
+    console.log(i, e1, e2);
+    let s1 = i;
+    let s2 = i;
+
+    // 做一个映射表用于快速查找，看老的是否在新的里面，没有就删除，有的话就更新
+    const keyToNewIndexMap = new Map();
+    for (let i = s2; i <= e2; i++) {
+      const vnode = c2[i];
+      keyToNewIndexMap.set(vnode.key, i);
+    }
+    console.log('🚀  patchKeyedChildren ~ keyToNewIndexMap', keyToNewIndexMap);
+
+    for (let i = s1; i <= e1; i++) {
+      const vnode = c1[i];
+      const newIndex = keyToNewIndexMap.get(vnode.key); // 通过key找索引
+      if (newIndex == undefined) {
+        // 如果新的里面找不到则说明老的有的要删除
+        unmount(vnode);
+      } else {
+        // 比较前后节点的差异，更新属性和儿子
+        patch(vnode, c2[newIndex], el);
+      }
+    }
+
+    // 调整顺序
+    // 我们可以按照新的队列，倒序插入，insertBefore 通过参照物往前面插入
+
+    // 插入的过程中，可能新的元素多，需要创建
+    let toBePatched = e2 - s2 + 1; // 要倒序插入的个数
+    for (let i = toBePatched - 1; i >= 0; i--) {
+      let newIndex = s2 + i; // h节点（教程上的示例）对应的索引，找它的下一个元素作为参照物，来进行插入
+      let anchor = c2[newIndex + 1]?.el;
+      let vnode = c2[newIndex];
+      if (!vnode.el) {
+        // 新列表中新增的元素
+        patch(null, vnode, el, anchor); // 创建h插入
+      } else {
+        hostInsert(vnode.el, el, anchor); // 接着倒序插入
+      }
+      // 倒序比对每一个元素，做插入操作
     }
   };
   const patchChildren = (n1, n2, el) => {
@@ -104,8 +218,7 @@ export function createRenderer(renderOptions) {
       if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
         if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
           // 3. 全量diff算法，两个数组比对
-          // TODO: diff
-          console.log('diff');
+          patchKeyedChildren(c1, c2, el);
         } else {
           // 4.
           unmountChildren(c1);
@@ -136,7 +249,7 @@ export function createRenderer(renderOptions) {
     patchChildren(n1, n2, el);
   };
   // 渲染走这里，更新也走这里
-  const patch = (n1, n2, container) => {
+  const patch = (n1, n2, container, anchor = null) => {
     if (n1 === n2) {
       // 两次渲染同一个元素直接跳过即可
       return;
@@ -148,7 +261,7 @@ export function createRenderer(renderOptions) {
       n1 = null; // 就会执行后续的n2初始化
     }
 
-    processElement(n1, n2, container); // 对元素（区别于组件）处理
+    processElement(n1, n2, container, anchor); // 对元素（区别于组件）处理
   };
 
   const unmount = (vnode) => hostRemove(vnode.el);
