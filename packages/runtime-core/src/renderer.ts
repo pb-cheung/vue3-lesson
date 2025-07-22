@@ -1,5 +1,6 @@
 import { ShapeFlags } from '@vue/shared';
 import { isSameVnode } from './createVnode';
+import getSequence from './seq';
 
 // 完全不关心api层面的，可以跨平台
 export function createRenderer(renderOptions) {
@@ -148,7 +149,7 @@ export function createRenderer(renderOptions) {
     // 以上确认不变化的节点，并且对插入和移除做了处理
 
     // 后面就是特殊的比对方式了
-    console.log(i, e1, e2);
+    // console.log(i, e1, e2);
     let s1 = i;
     let s2 = i;
 
@@ -177,7 +178,11 @@ export function createRenderer(renderOptions) {
         patch(vnode, c2[newIndex], el);
       }
     }
-    console.log('newIndexToOldMapIndex: ', newIndexToOldMapIndex); // [4,2,3,0] 待处理的几个元素在旧数组中的下标
+    // console.log('newIndexToOldMapIndex: ', newIndexToOldMapIndex); // [4,2,3,0] 待处理的几个元素在旧数组中的下标
+
+    let increasingSeq = getSequence(newIndexToOldMapIndex);
+    let j = increasingSeq[increasingSeq.length - 1]; // 索引
+
     // 调整顺序
     // 我们可以按照新的队列，倒序插入，insertBefore 通过参照物往前面插入
 
@@ -190,7 +195,11 @@ export function createRenderer(renderOptions) {
         // 新列表中新增的元素
         patch(null, vnode, el, anchor); // 创建h插入
       } else {
-        hostInsert(vnode.el, el, anchor); // 接着倒序插入
+        if (i === increasingSeq[j]) {
+          j--; // 做了diff算法的优化
+        } else {
+          hostInsert(vnode.el, el, anchor); // 接着倒序插入
+        }
       }
       // 倒序比对每一个元素，做插入操作
     }
