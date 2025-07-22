@@ -154,12 +154,17 @@ export function createRenderer(renderOptions) {
 
     // 做一个映射表用于快速查找，看老的是否在新的里面，没有就删除，有的话就更新
     const keyToNewIndexMap = new Map();
+    let toBePatched = e2 - s2 + 1; // 要倒序插入的个数
+
+    // 待处理的新的节点列表，他们对应的老节点的列表的索引
+    let newIndexToOldMapIndex = new Array(toBePatched).fill(0); // [0,0,0,0]
+
+    // [4,2,3,0] -> [1,2] 根据最长递增子序列算法得出对应的索引结果
+
     for (let i = s2; i <= e2; i++) {
       const vnode = c2[i];
       keyToNewIndexMap.set(vnode.key, i);
     }
-    console.log('🚀  patchKeyedChildren ~ keyToNewIndexMap', keyToNewIndexMap);
-
     for (let i = s1; i <= e1; i++) {
       const vnode = c1[i];
       const newIndex = keyToNewIndexMap.get(vnode.key); // 通过key找索引
@@ -167,16 +172,16 @@ export function createRenderer(renderOptions) {
         // 如果新的里面找不到则说明老的有的要删除
         unmount(vnode);
       } else {
+        newIndexToOldMapIndex[newIndex - s2] = i;
         // 比较前后节点的差异，更新属性和儿子
         patch(vnode, c2[newIndex], el);
       }
     }
-
+    console.log('newIndexToOldMapIndex: ', newIndexToOldMapIndex); // [4,2,3,0] 待处理的几个元素在旧数组中的下标
     // 调整顺序
     // 我们可以按照新的队列，倒序插入，insertBefore 通过参照物往前面插入
 
     // 插入的过程中，可能新的元素多，需要创建
-    let toBePatched = e2 - s2 + 1; // 要倒序插入的个数
     for (let i = toBePatched - 1; i >= 0; i--) {
       let newIndex = s2 + i; // h节点（教程上的示例）对应的索引，找它的下一个元素作为参照物，来进行插入
       let anchor = c2[newIndex + 1]?.el;
