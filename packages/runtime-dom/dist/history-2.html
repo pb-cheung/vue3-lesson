@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>history-2</title>
+</head>
+
+<body>
+    <div id="app"></div>
+    <script type="module">
+        import {
+            // createRenderer,
+            // render,
+            // h,
+            // createVNode,
+            // Text,
+        } from '/node_modules/vue/dist/vue.runtime.esm-browser.js';
+
+        import { renderOptions, render, h, Text } from './runtime-dom.js';
+
+        render(h(Text, 'pb '), app);
+
+        setTimeout(() => {
+            // render(h(Text, 'pb update'), app);
+            render(null, app);
+        }, 1000);
+    </script>
+</body>
+
+</html>

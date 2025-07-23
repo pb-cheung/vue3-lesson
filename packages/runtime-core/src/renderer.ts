@@ -1,5 +1,5 @@
 import { ShapeFlags } from '@vue/shared';
-import { isSameVnode } from './createVnode';
+import { isSameVnode, Text } from './createVnode';
 import getSequence from './seq';
 
 // 完全不关心api层面的，可以跨平台
@@ -49,7 +49,18 @@ export function createRenderer(renderOptions) {
     hostInsert(el, container, anchor);
     // hostCreateElement(vnode)
   };
-
+  const processText = (n1, n2, container) => {
+    if (n1 === null) {
+      // 1. 虚拟节点关联真实节点
+      // 2. 将节点插入到页面
+      hostInsert((n2.el = hostCreateText(n2.children)), container);
+    } else {
+      const el = (n2.el = n1.el);
+      if (n1.children === n2.children) {
+        hostSetText(el, n2.children);
+      }
+    }
+  };
   const processElement = (n1, n2, container, anchor) => {
     if (n1 === null) {
       // 初始化操作
@@ -275,27 +286,30 @@ export function createRenderer(renderOptions) {
       n1 = null; // 就会执行后续的n2初始化
     }
 
-    processElement(n1, n2, container, anchor); // 对元素（区别于组件）处理
+    const { type } = n2;
+    switch (type) {
+      case Text:
+        processText(n1, n2, container);
+        break;
+      default:
+        processElement(n1, n2, container, anchor); // 对元素（区别于组件）处理
+    }
   };
 
   const unmount = (vnode) => hostRemove(vnode.el);
   // 将虚拟节点变成真实节点进行渲染
   // 多次调用render，会进行虚拟节点的比较，再进行更新
   const render = (vnode, container) => {
-    // console.log(
-    //   '🚀 ~ file: index.ts ~ line 17 ~ render ~ vnode, container',
-    //   vnode,
-    //   container
-    // );
     if (vnode === null) {
       // 我要移除当前容器中的dom元素
       if (container._vnode) {
         // console.log('🚀 ~ render ~ _vnode:', container._vnode);
         unmount(container._vnode);
       }
+    } else {
+      patch(container._vnode || null, vnode, container);
+      container._vnode = vnode; // 缓存上一次渲染时候的vnode
     }
-    patch(container._vnode || null, vnode, container);
-    container._vnode = vnode; // 缓存上一次渲染时候的vnode
   };
 
   return {
