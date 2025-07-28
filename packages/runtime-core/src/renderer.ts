@@ -1,6 +1,7 @@
 import { reactive, ReactiveEffect } from '@vue/reactivity/src';
 import { ShapeFlags } from '@vue/shared';
 import { Fragment, isSameVnode, Text } from './createVnode';
+import { queueJob } from './scheduler';
 import getSequence from './seq';
 
 // 完全不关心api层面的，可以跨平台
@@ -308,7 +309,9 @@ export function createRenderer(renderOptions) {
       }
     };
 
-    const effect = new ReactiveEffect(componentUpdageFn, () => update());
+    const effect = new ReactiveEffect(componentUpdageFn, () => {
+      queueJob(update);
+    });
 
     const update = (instance.update = () => {
       effect.run();

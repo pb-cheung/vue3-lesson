@@ -38,15 +38,17 @@
           //   this.age++;
           // }, 3000);
 
+          // lesson-32 组件的异步更新
           // 30 32 36 44 60
           // 2  4  8  16
-          // 第一次：render执行一次，响应式数据变化两次，会触发两次调度器（render执行）
+          // 第一次：render执行一次，响应式数据age变化两次，会触发两次调度器（render执行）
           // 第二轮：两个render执行，触发4个render运行
           // 第三轮：4个render执行，触发8个render运行
-          // setTimeout(() => {
-          //   this.age++;
-          //   this.age++;
-          // }, 3000);
+          // 使用微任务，进行异步更新后，每次只有一个render运行，页面上age每次+2
+          setTimeout(() => {
+            this.age++;
+            this.age++;
+          }, 3000);
 
           // this === 组件的实例 内部不会通过类来产生实例了
           return h(Fragment, [
