@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>component</title>
+  </head>
+
+  <body>
+    <div id="app"></div>
+    <script type="module">
+      // import {
+      //   render,
+      //   h,
+      //   createVNode,
+      //   Text,
+      //   Fragment,
+      // } from '/node_modules/vue/dist/vue.runtime.esm-browser.js';
+
+      import {
+        renderOptions,
+        render,
+        h,
+        Text,
+        Fragment,
+      } from './runtime-dom.js';
+
+      // 选项式组件
+      const VueComponent = {
+        data() {
+          return {
+            name: 'pb',
+            age: 30,
+          };
+        },
+        render(proxy) {
+          // setTimeout(() => {
+          //   this.age++;
+          // }, 3000);
+
+          // 30 32 36 44 60
+          // 2  4  8  16
+          // 第一次：render执行一次，响应式数据变化两次，会触发两次调度器（render执行）
+          // 第二轮：两个render执行，触发4个render运行
+          // 第三轮：4个render执行，触发8个render运行
+          // setTimeout(() => {
+          //   this.age++;
+          //   this.age++;
+          // }, 3000);
+
+          // this === 组件的实例 内部不会通过类来产生实例了
+          return h(Fragment, [
+            h(Text, 'my name is: ' + proxy.name),
+            h('a', this.age),
+          ]);
+        },
+      };
+      // 组件两个虚拟节点组成
+      // h(VueComponent) = vnode 产生的组件内的虚拟节点
+      // render函数返回的虚拟节点，这个才是最终要渲染的内容 = subTree
+      render(h(VueComponent), app);
+    </script>
+  </body>
+</html>
