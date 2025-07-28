@@ -40,13 +40,32 @@
           name: String,
           age: Number,
         },
+        data() {
+          return {
+            x: 1,
+            y: 2,
+          };
+        },
+        // render(proxy) {
+        //   console.log('🚀 proxy', proxy);
+        //   // attrs: { a: 1, b: 2 }
+        //   // props: { name: 'pb', age: 30 }
+        //   return h('div', [
+        //     h(Text, 'my name is: ' + proxy.name),
+        //     h('a', proxy.$props.age),
+        //   ]);
+        // },
+
+        // lesson-34 组件中的代理对象
         render(proxy) {
           console.log('🚀 proxy', proxy);
           // attrs: { a: 1, b: 2 }
           // props: { name: 'pb', age: 30 }
           return h('div', [
             h(Text, 'my name is: ' + proxy.name),
-            h('a', proxy.$props.age),
+            h('a', proxy.age),
+            h('div', proxy.$attrs.a),
+            h('div', this.$attrs.b),
           ]);
         },
       };

@@ -1,5 +1,5 @@
 import { reactive, ReactiveEffect } from '@vue/reactivity/src';
-import { ShapeFlags } from '@vue/shared';
+import { hasOwn, ShapeFlags } from '@vue/shared';
 import { Fragment, isSameVnode, Text } from './createVnode';
 import { queueJob } from './scheduler';
 import getSequence from './seq';
@@ -319,6 +319,7 @@ export function createRenderer(renderOptions) {
       attrs: {},
       propsOptions,
       component: null,
+      proxy: null, // 用来代理props attrs data，让用户更方便的使用
     };
 
     // 根据propsOptions来区分出props，attrs
@@ -327,21 +328,51 @@ export function createRenderer(renderOptions) {
     // 组件更新 n2.component.subTree.el = n1.component.subTree.el
 
     initProps(instance, vnode.props);
-    console.log(
-      '🚀 ~ file: renderer.ts ~ line 329 ~ mountComponent ~ instance',
-      instance
-    );
+
+    const publicProperty = {
+      $attrs: (instance) => instance.attrs,
+      // ...
+    };
+    instance.proxy = new Proxy(instance, {
+      get(target, key) {
+        // data 和 props属性中的名字不要重名
+        const { state, props } = target;
+        // proxy.name -> state.name
+        if (state && hasOwn(state, key)) {
+          return state[key];
+        } else if (props && hasOwn(props, key)) {
+          return props[key];
+        }
+
+        const getter = publicProperty[key]; // 通过不同的策略来访问对应的方法
+        if (getter) {
+          return getter(target);
+        }
+        // 对于一些无法修改的属性：$slots $attrs
+      },
+      set(target, key, value) {
+        const { state, props } = target;
+        if (state && hasOwn(state, key)) {
+          state[key] = value;
+        } else if (props && hasOwn(props, key)) {
+          // 用户可以修改属性中的嵌套属性（内部不会报错）但是不合法
+          console.warn('props are readonly');
+          return false;
+        }
+        return true;
+      },
+    });
 
     const componentUpdageFn = () => {
       // 我们要在这里区分：是第一次还是之后的
       if (!instance.isMounted) {
-        const subTree = render.call(state, state); // 两个参数分别为render函数中的this指向，和proxy参数
+        const subTree = render.call(instance.proxy, instance.proxy); // 两个参数分别为render函数中的this指向，和proxy参数
         instance.subTree = subTree;
         patch(null, subTree, container, anchor);
         instance.isMounted = true;
       } else {
         // 基于状态的组件组件更新
-        const subTree = render.call(state, state);
+        const subTree = render.call(instance.proxy, instance.proxy);
         patch(instance.subTree, subTree, container, anchor);
         instance.subTree = subTree;
       }
