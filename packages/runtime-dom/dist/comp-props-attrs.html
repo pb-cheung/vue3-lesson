@@ -62,7 +62,7 @@
           // attrs: { a: 1, b: 2 }
           // props: { name: 'pb', age: 30 }
           return h('div', [
-            h(Text, 'my name is: ' + proxy.name),
+            h(Text, 'my name is: ' + this.name),
             h('a', proxy.age),
             h('div', proxy.$attrs.a),
             h('div', this.$attrs.b),
