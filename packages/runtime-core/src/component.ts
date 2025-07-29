@@ -84,10 +84,11 @@ export function setupComponent(instance) {
 
   const { data, render } = vnode.type;
   if (!isFunction(data)) {
-    return console.warn('data option must be a function');
+    console.warn('data option must be a function');
+  } else {
+    // data中可以拿到props
+    instance.data = reactive(data.call(instance.proxy));
   }
-  // data中可以拿到props
-  instance.data = reactive(data.call(instance.proxy));
 
   instance.render = render;
 }

@@ -318,12 +318,49 @@ export function createRenderer(renderOptions) {
     // 3. 创建一个effect
     setupRenderEffect(instance, container, anchor);
   };
+  const hasPropsChange = (prevProps, nextProps) => {
+    let nKeys = Object.keys(prevProps);
+    if (Object.keys(nextProps).length !== nKeys.length) {
+      return true;
+    }
+    for (let i = 0; i < nKeys.length; i++) {
+      const key = nKeys[i];
+      if (nextProps[key] !== prevProps[key]) {
+        return true;
+      }
+    }
+    return false;
+  };
+  const updateProps = (instance, prevProps, nextProps) => {
+    // instance.props 是响应式的
+    if (hasPropsChange(prevProps, nextProps)) {
+      // 属性是否存在变化
+      for (let key in nextProps) {
+        // 新的覆盖旧的
+        instance.props[key] = nextProps[key];
+      }
+
+      for (let key in instance.props) {
+        // 删除旧的多余的属性
+        if (!(key in nextProps)) {
+          delete instance.props[key];
+        }
+      }
+    }
+  };
+  const updateComponent = (n1, n2) => {
+    const instance = (n2.component = n1.component); // 复用组件的实例
+    const { props: prevProps } = n1;
+    const { props: nextProps } = n2;
+    updateProps(instance, prevProps, nextProps);
+  };
   const processComponent = (n1, n2, container, anchor) => {
     if (n1 === null) {
       // 组件渲染
       mountComponent(n2, container, anchor);
     } else {
       // 组件更新
+      updateComponent(n1, n2);
     }
   };
   // 渲染走这里，更新也走这里
