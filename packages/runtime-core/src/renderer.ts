@@ -1,5 +1,5 @@
-import { reactive, ReactiveEffect } from '@vue/reactivity/src';
-import { hasOwn, ShapeFlags } from '@vue/shared';
+import { ReactiveEffect } from '@vue/reactivity/src';
+import { ShapeFlags } from '@vue/shared';
 import { Fragment, isSameVnode, Text } from './createVnode';
 import { queueJob } from './scheduler';
 import getSequence from './seq';

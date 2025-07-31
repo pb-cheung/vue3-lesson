@@ -35,26 +35,32 @@
       // };
 
       // 所有属性 - propsOptions = attrs
-      // const VueComponent = {
-      // props: {
-      //   name: String,
-      //   age: Number,
-      // },
-      // data() {
-      //   return {
-      //     x: 1,
-      //     y: 2,
-      //   };
-      // },
-      // render(proxy) {
-      //   console.log('🚀 proxy', proxy);
-      //   // attrs: { a: 1, b: 2 }
-      //   // props: { name: 'pb', age: 30 }
-      //   return h('div', [
-      //     h(Text, 'my name is: ' + proxy.name),
-      //     h('a', proxy.$props.age),
-      //   ]);
-      // },
+      const VueComponent = {
+        props: {
+          name: String,
+          age: Number,
+        },
+        data() {
+          return {
+            x: 'xxx',
+            y: 'yyy',
+          };
+        },
+        render(proxy) {
+          console.log('🚀 proxy', proxy);
+          // attrs: { a: 1, b: 2 }
+          // props: { name: 'pb', age: 30 }
+          // data: { x: 'xxx', y: 'yyy' }
+          return h('div', [
+            h(Text, 'my name is: ' + proxy.name),
+            h('a', this.age),
+            h('div', this.x + this.y),
+            h('div', this.$attrs.a),
+            h('div', this.$attrs.b),
+          ]);
+        },
+      };
+      render(h(VueComponent, { a: 1, b: 2, name: 'pb', age: 30 }), app);
 
       // lesson-34 组件中的代理对象
       //   render(proxy) {
@@ -75,30 +81,30 @@
       // lesson-36 通过属性更新组件
       // 组件更新有三种方式：状态-data、属性-props、插槽
 
-      const RenderComponent = {
-        props: {
-          address: String,
-        },
-        render() {
-          return h(Text, this.address);
-        },
-      };
-      const VueComponent = {
-        data() {
-          return {
-            flag: true,
-            address: '北京',
-          };
-        },
-        render(proxy) {
-          return h(Fragment, null, [
-            h('button', { onClick: () => (this.flag = !this.flag) }, '点我啊'),
-            h(RenderComponent, { address: this.flag ? '北京' : '上海' }),
-          ]);
-        },
-      };
+      // const RenderComponent = {
+      //   props: {
+      //     address: String,
+      //   },
+      //   render() {
+      //     return h(Text, this.address);
+      //   },
+      // };
+      // const VueComponent = {
+      //   data() {
+      //     return {
+      //       flag: true,
+      //       address: '北京',
+      //     };
+      //   },
+      //   render(proxy) {
+      //     return h(Fragment, null, [
+      //       h('button', { onClick: () => (this.flag = !this.flag) }, '点我啊'),
+      //       h(RenderComponent, { address: this.flag ? '北京' : '上海' }),
+      //     ]);
+      //   },
+      // };
 
-      render(h(VueComponent, {}), app);
+      // render(h(VueComponent, {}), app);
     </script>
   </body>
 </html>

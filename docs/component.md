@@ -79,11 +79,13 @@ render(h(VueComponent), app);
 
 ### props&attrs
 
+attrs = 所有属性 - props
+
 #### props
 
 props 是特殊的 attribute，在组件中声明式（props）或者函数式（defineProps）明确定义的属性 attribute。
 
-### attrs&$attrs
+#### attrs&$attrs
 
 引用官网文档中的相关描述，厘清概念规则：
 
@@ -115,24 +117,36 @@ export default {
 
 > 用于编程式地创建组件虚拟 DOM 树的函数。
 
-从这里的接口类型信息中可以知道，render 函数中的`this`和参数相同为**组件实例**。
+从这里的接口类型信息中可以知道，render 函数中的`this`指向和其参数相同为**组件实例**。
 所以，在函数中可以这样使用：`this.$attrs`、`$this.$props`
 
 综合示例：
 
 ```javascript
 const VueComponent = {
+  props: {
+    name: String,
+    age: Number,
+  },
+  data() {
+    return {
+      x: 'xxx',
+      y: 'yyy',
+    };
+  },
   render(proxy) {
+    console.log('🚀 proxy', proxy);
     // attrs: { a: 1, b: 2 }
     // props: { name: 'pb', age: 30 }
+    // data: { x: 'xxx', y: 'yyy' }
     return h('div', [
-      h(Text, 'my name is: ' + this.name),
-      h('a', proxy.age),
-      h('div', proxy.$attrs.a),
+      h(Text, 'my name is: ' + proxy.name),
+      h('a', this.age),
+      h('div', this.x + this.y),
+      h('div', this.$attrs.a),
       h('div', this.$attrs.b),
     ]);
   },
 };
-
 render(h(VueComponent, { a: 1, b: 2, name: 'pb', age: 30 }), app);
 ```
