@@ -1,4 +1,4 @@
-import { reactive } from '@vue/reactivity';
+import { proxyRefs, reactive } from '@vue/reactivity';
 import { hasOwn, isFunction } from '@vue/shared';
 
 export function createComponentInstance(vnode) {
@@ -13,6 +13,7 @@ export function createComponentInstance(vnode) {
     propsOptions: vnode.type.props, // 用户声明的哪些属性是组件的属性
     component: null,
     proxy: null, // 用来代理props attrs data，让用户更方便的使用
+    setupState: {},
   };
 
   return instance;
@@ -47,12 +48,14 @@ const publicProperty = {
 const handler = {
   get(target, key) {
     // data 和 props属性中的名字不要重名
-    const { data, props } = target;
+    const { data, props, setupState } = target;
     // proxy.name -> data.name
     if (data && hasOwn(data, key)) {
       return data[key];
     } else if (props && hasOwn(props, key)) {
       return props[key];
+    } else if (setupState && hasOwn(setupState, key)) {
+      return setupState[key];
     }
 
     const getter = publicProperty[key]; // 通过不同的策略来访问对应的方法
@@ -62,13 +65,15 @@ const handler = {
     // 对于一些无法修改的属性：$slots $attrs
   },
   set(target, key, value) {
-    const { data, props } = target;
+    const { data, props, setupState } = target;
     if (data && hasOwn(data, key)) {
       data[key] = value;
     } else if (props && hasOwn(props, key)) {
       // 用户可以修改属性中的嵌套属性（内部不会报错）但是不合法
       console.warn('props are readonly');
       return false;
+    } else if (setupState && hasOwn(setupState, key)) {
+      setupState[key] = value;
     }
     return true;
   },
@@ -82,7 +87,24 @@ export function setupComponent(instance) {
   // 赋值代理对象
   instance.proxy = new Proxy(instance, handler);
 
-  const { data, render } = vnode.type;
+  const { data, render, setup } = vnode.type;
+
+  if (setup) {
+    const setupContext = {
+      emit: instance.emit,
+      attrs: instance.attrs,
+      slots: instance.slots,
+      expose: instance.expose,
+    };
+    const setupResult = setup(instance.proxy, instance.props, setupContext);
+
+    if (isFunction(setupResult)) {
+      instance.render = setupResult;
+    } else {
+      instance.setupState = proxyRefs(setupResult); // 将返回值做脱ref
+    }
+  }
+
   if (!isFunction(data)) {
     console.warn('data option must be a function');
   } else {
@@ -90,5 +112,8 @@ export function setupComponent(instance) {
     instance.data = reactive(data.call(instance.proxy));
   }
 
-  instance.render = render;
+  if (!instance.render) {
+    // 避免覆盖setup中的render
+    instance.render = render;
+  }
 }

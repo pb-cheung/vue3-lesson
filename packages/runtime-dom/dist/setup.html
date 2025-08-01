@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>setup</title>
+  </head>
+
+  <body>
+    <div id="app"></div>
+    <script type="module">
+      // import {
+      //   render,
+      //   h,
+      //   createVNode,
+      //   Text,
+      //   Fragment,
+      //   ref,
+      // } from '/node_modules/vue/dist/vue.runtime.esm-browser.js';
+
+      import { render, h, Text, Fragment, ref } from './runtime-dom.js';
+
+      // setup函数，每个组件只会执行一次，可以在这个函数内使用composition API(reactive ref)
+      // 解决反复横跳问题（data中添加数据，methods中写处理函数）
+      const VueComponent = {
+        setup(props, { emit, attrs, slots, expose }) {
+          console.log('🚀  setup ', props, emit, attrs, slots, expose);
+
+          const a = ref(1);
+          setTimeout(() => {
+            a.value = 2;
+          }, 1000);
+
+          // setup可以返回函数 也可以返回对象
+          // 返回函数，这个函数就是渲染函数
+          // return () => {
+          //   return h('div', 'hello');
+          // };
+          return () => {
+            return h('div', 'hello' + a.value);
+          };
+
+          // 返回对象，作为组件的状态
+          // return {
+          //   a,
+          // };
+        },
+        render(proxy) {
+          return h('div', 'world' + proxy.a); // 数据来自setup返回的对象
+        },
+      };
+      render(h(VueComponent), app);
+    </script>
+  </body>
+</html>
