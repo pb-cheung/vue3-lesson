@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>slots</title>
+</head>
+
+<body>
+  <div id="app"></div>
+  <script type="module">
+    // import {
+    //   render,
+    //   h,
+    //   createVNode,
+    //   Text,
+    //   Fragment,
+    // } from '/node_modules/vue/dist/vue.runtime.esm-browser.js';
+
+    import { render, h, Text, Fragment } from './runtime-dom.js';
+
+    // lesson-39 插槽实现
+    const RenderComponent = {
+      render(proxy) {
+        console.log("🚀 ~ render ~ proxy:", proxy)
+
+        return h(Fragment, h('div', null, [
+          proxy.$slots.header('test'),
+          proxy.$slots.footer('abc'),
+        ]));
+      },
+    };
+    const VueComponent = {
+      render() {
+        return h(RenderComponent, null, {
+          header: (t) => h('header', 'header-content' + t),
+          footer: (t) => h('footer', 'footer-content' + t),
+        });
+      },
+    };
+    /* 渲染函数，渲染组件并传递插槽，相关文档：https://cn.vuejs.org/guide/extras/render-function.html#passing-slots */
+
+    render(h(VueComponent, {}), app);
+  </script>
+</body>
+
+</html>
