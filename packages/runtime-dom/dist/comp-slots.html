@@ -21,16 +21,31 @@
     import { render, h, Text, Fragment } from './runtime-dom.js';
 
     // lesson-39 插槽实现
-    const RenderComponent = {
-      render(proxy) {
-        console.log("🚀 ~ render ~ proxy:", proxy)
+    // const RenderComponent = {
+    //   render(proxy) {
+    //     console.log("🚀 ~ render ~ proxy:", proxy)
 
-        return h(Fragment, h('div', null, [
-          proxy.$slots.header('test'),
-          proxy.$slots.footer('abc'),
-        ]));
-      },
+    //     return h(Fragment, h('div', null, [
+    //       proxy.$slots.header('test'),
+    //       proxy.$slots.footer('abc'),
+    //     ]));
+    //   },
+    // };
+
+
+    // setup 第二个参数中获取slots
+    const RenderComponent = {
+      setup(props, { emits, attrs, slots, expose }) {
+        console.log("🚀 ~ setup ~ slots:", slots)
+        return (proxy) => {
+          return h(Fragment, h('div', null, [
+            slots.header('test'),
+            slots.footer('abc'),
+          ]));
+        }
+      }
     };
+
     const VueComponent = {
       render() {
         return h(RenderComponent, null, {

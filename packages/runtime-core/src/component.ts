@@ -1,5 +1,5 @@
 import { proxyRefs, reactive } from '@vue/reactivity';
-import { hasOwn, isFunction, ShapeFlags } from '@vue/shared';
+import { hasOwn, isFunction, ShapeFlags, toHandlerKey } from '@vue/shared';
 
 export function createComponentInstance(vnode) {
   const instance = {
@@ -15,6 +15,7 @@ export function createComponentInstance(vnode) {
     component: null,
     proxy: null, // 用来代理props attrs data，让用户更方便的使用
     setupState: {},
+    exposed: {},
   };
 
   return instance;
@@ -103,12 +104,18 @@ export function setupComponent(instance) {
 
   if (setup) {
     const setupContext = {
-      emit: instance.emit,
+      emit(event, ...payload) {
+        const eventName = toHandlerKey(event);
+        const handler = instance.vnode.props[eventName];
+        handler && handler(...payload);
+      },
       attrs: instance.attrs,
       slots: instance.slots,
-      expose: instance.expose,
+      expose(value) {
+        instance.exposed = value;
+      },
     };
-    const setupResult = setup(instance.proxy, instance.props, setupContext);
+    const setupResult = setup(instance.props, setupContext);
 
     if (isFunction(setupResult)) {
       instance.render = setupResult;

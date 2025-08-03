@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>emit</title>
+</head>
+
+<body>
+  <div id="app"></div>
+  <script type="module">
+    // import {
+    //   render,
+    //   h,
+    //   createVNode,
+    //   Text,
+    //   Fragment,
+    // } from '/node_modules/vue/dist/vue.runtime.esm-browser.js';
+
+    import { render, h, Text, Fragment } from './runtime-dom.js';
+
+    // lesson-40 emit及其卸载
+    const VueComponent = {
+      setup(props, { emit, expose }) {
+        return (proxy) => {
+          return h('button', { onClick: () => emit('my-event', 100) }, '点击这里');
+        }
+      }
+    };
+
+    // 给组件绑定事件 <Comp @my-event=alert('1024!') />
+    render(h(VueComponent, { onMyEvent: () => alert('1024!') }), app);
+
+
+    // 组件卸载
+    setTimeout(() => {
+      render(h(null, { onMyEvent: () => alert('1024!') }), app);
+    }, 3000)
+  </script>
+</body>
+
+</html>

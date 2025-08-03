@@ -395,8 +395,11 @@ export function createRenderer(renderOptions) {
   };
 
   const unmount = (vnode) => {
+    const { shapeFlag } = vnode;
     if (vnode.type === Fragment) {
       unmountChildren(vnode.children);
+    } else if (shapeFlag & ShapeFlags.COMPONENT) {
+      unmount(vnode.component.subTree); // 组件的虚拟节点是subTree，真实节点el在subTree下
     } else {
       hostRemove(vnode.el);
     }
