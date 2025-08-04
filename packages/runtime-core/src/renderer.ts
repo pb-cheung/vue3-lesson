@@ -1,6 +1,6 @@
 import { ReactiveEffect } from '@vue/reactivity/src';
 import { ShapeFlags } from '@vue/shared';
-import { Fragment, isSameVnode, Text } from './createVnode';
+import { Fragment, isSameVnode, Text, createVnode } from './createVnode';
 import { queueJob } from './scheduler';
 import getSequence from './seq';
 import { createComponentInstance, setupComponent } from './component';
@@ -21,14 +21,30 @@ export function createRenderer(renderOptions) {
     patchProp: hostPatchProp,
   } = renderOptions;
 
-  const mountChildren = (children, container) => {
-    for (let i = 0; i < children.length; i++) {
-      // children[i] 可能是纯文本元素
-      patch(null, children[i], container);
+  // 规范化子节点，将文本节点转换为虚拟节点
+  const normalizeChildren = (children) => {
+    if (Array.isArray(children)) {
+      return children.map((child) => {
+        if (typeof child === 'string' || typeof child === 'number') {
+          // 将字符串或数字转换为文本虚拟节点
+          return createVnode(Text, null, String(child));
+        }
+        return child;
+      });
+    }
+    return children;
+  };
+
+  const mountChildren = (children, container, parentComponent) => {
+    // 先规范化子节点
+    const normalizedChildren = normalizeChildren(children);
+    for (let i = 0; i < normalizedChildren.length; i++) {
+      // normalizedChildren[i] 现在保证是虚拟节点
+      patch(null, normalizedChildren[i], container, parentComponent);
     }
   };
 
-  const mountElement = (vnode, container, anchor) => {
+  const mountElement = (vnode, container, anchor, parentComponent) => {
     const { type, children, props, shapeFlag } = vnode;
 
     // 第一次初始化的时候，我们把虚拟节点和真实dom创建关联，vnode.el = 真实dom
@@ -46,7 +62,7 @@ export function createRenderer(renderOptions) {
     if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
       hostSetElementText(el, children);
     } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
-      mountChildren(children, el);
+      mountChildren(children, el, parentComponent);
     }
 
     hostInsert(el, container, anchor);
@@ -64,12 +80,12 @@ export function createRenderer(renderOptions) {
       }
     }
   };
-  const processElement = (n1, n2, container, anchor) => {
+  const processElement = (n1, n2, container, anchor, parentComponent) => {
     if (n1 === null) {
       // 初始化操作
-      mountElement(n2, container, anchor);
+      mountElement(n2, container, anchor, parentComponent);
     } else {
-      patchElement(n1, n2, container);
+      patchElement(n1, n2, container, parentComponent);
     }
   };
   const patchProps = (oldProps, newProps, el) => {
@@ -218,7 +234,7 @@ export function createRenderer(renderOptions) {
       // 倒序比对每一个元素，做插入操作
     }
   };
-  const patchChildren = (n1, n2, el) => {
+  const patchChildren = (n1, n2, el, parentComponent) => {
     // 儿子节点的情况：text/array/null
     const c1 = n1.children;
     const c2 = n2.children;
@@ -258,12 +274,12 @@ export function createRenderer(renderOptions) {
         }
         // 6.
         if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
-          mountChildren(c2, el);
+          mountChildren(c2, el, parentComponent);
         }
       }
     }
   };
-  const patchElement = (n1, n2, container) => {
+  const patchElement = (n1, n2, container, parentComponent) => {
     // 1.比较元素的差异，肯定需要复用dom元素
     // 2.比较属性和元素的子节点
     let el = (n2.el = n1.el); // 对dom元素的复用
@@ -274,13 +290,13 @@ export function createRenderer(renderOptions) {
     // hostPatchProp只针对一个属性进行处理，例如class、style、event、attr
     patchProps(oldProps, newProps, el);
 
-    patchChildren(n1, n2, el);
+    patchChildren(n1, n2, el, parentComponent);
   };
-  const processFragment = (n1, n2, container) => {
+  const processFragment = (n1, n2, container, parentComponent) => {
     if (n1 === null) {
-      mountChildren(n2.children, container);
+      mountChildren(n2.children, container, parentComponent);
     } else {
-      patchChildren(n1, n2, container);
+      patchChildren(n1, n2, container, parentComponent);
     }
   };
 
@@ -310,7 +326,7 @@ export function createRenderer(renderOptions) {
     });
     update();
   }
-  const mountComponent = (vnode, container, anchor) => {
+  const mountComponent = (vnode, container, anchor, parentComponent) => {
     // 1. 先创建组件实例，放到虚拟节点上
     const instance = (vnode.component = createComponentInstance(vnode));
     // 2. 给实例的属性赋值
@@ -354,17 +370,17 @@ export function createRenderer(renderOptions) {
     const { props: nextProps } = n2;
     updateProps(instance, prevProps, nextProps);
   };
-  const processComponent = (n1, n2, container, anchor) => {
+  const processComponent = (n1, n2, container, anchor, parentComponent) => {
     if (n1 === null) {
       // 组件渲染
-      mountComponent(n2, container, anchor);
+      mountComponent(n2, container, anchor, parentComponent);
     } else {
       // 组件更新
       updateComponent(n1, n2);
     }
   };
   // 渲染走这里，更新也走这里
-  const patch = (n1, n2, container, anchor = null) => {
+  const patch = (n1, n2, container, anchor = null, parentComponent = null) => {
     if (n1 === n2) {
       // 两次渲染同一个元素直接跳过即可
       return;
@@ -382,14 +398,28 @@ export function createRenderer(renderOptions) {
         processText(n1, n2, container);
         break;
       case Fragment:
-        processFragment(n1, n2, container);
+        processFragment(n1, n2, container, parentComponent);
         break;
       default:
         if (shapeFlag & ShapeFlags.ELEMENT) {
-          processElement(n1, n2, container, anchor); // 对元素（区别于组件）处理
+          processElement(n1, n2, container, anchor, parentComponent); // 对元素（区别于组件）处理
+        } else if (shapeFlag & ShapeFlags.TELEPORT) {
+          debugger;
+          type.process(n1, n2, container, anchor, parentComponent, {
+            mountChildren,
+            patchChildren,
+            move(vnode, container, anchor) {
+              // 此方法可以将组件和dom元素移动到指定的位置
+              hostInsert(
+                vnode.component ? vnode.component.subTree.el : vnode.el,
+                container,
+                anchor
+              );
+            },
+          });
         } else if (shapeFlag & ShapeFlags.COMPONENT) {
           // 对组件的处理，Vue3中函数式组件已经废弃了，没有性能节约
-          processComponent(n1, n2, container, anchor);
+          processComponent(n1, n2, container, anchor, parentComponent);
         }
     }
   };

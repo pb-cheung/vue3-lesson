@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teleport</title>
+</head>
+
+<body>
+  <div id="app"></div>
+  <div id="root"></div>
+  <script type="module">
+    // import {
+    //   render,
+    //   h,
+    //   createVNode,
+    //   Text,
+    //   Fragment,
+    //   Teleport,
+    // } from '/node_modules/vue/dist/vue.runtime.esm-browser.js';
+
+    import {
+      render,
+      h,
+      Text,
+      Fragment,
+      Teleport
+    } from './runtime-dom.js';
+
+    // lesson-41 Teleport实现
+    render(h(Teleport, { to: '#root' }, [123, 'abc']), app);
+
+  </script>
+</body>
+
+</html>
