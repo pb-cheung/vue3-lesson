@@ -404,7 +404,6 @@ export function createRenderer(renderOptions) {
         if (shapeFlag & ShapeFlags.ELEMENT) {
           processElement(n1, n2, container, anchor, parentComponent); // 对元素（区别于组件）处理
         } else if (shapeFlag & ShapeFlags.TELEPORT) {
-          debugger;
           type.process(n1, n2, container, anchor, parentComponent, {
             mountChildren,
             patchChildren,
@@ -430,6 +429,8 @@ export function createRenderer(renderOptions) {
       unmountChildren(vnode.children);
     } else if (shapeFlag & ShapeFlags.COMPONENT) {
       unmount(vnode.component.subTree); // 组件的虚拟节点是subTree，真实节点el在subTree下
+    } else if (shapeFlag & ShapeFlags.TELEPORT) {
+      vnode.type.remove(vnode, unmountChildren);
     } else {
       hostRemove(vnode.el);
     }
