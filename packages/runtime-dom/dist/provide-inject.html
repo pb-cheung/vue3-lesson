@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>provide-inject</title>
+</head>
+
+<body>
+  <div id="app"></div>
+  <script type="module">
+    import {
+      render,
+      h,
+      createVNode,
+      ref,
+      Text,
+      Fragment,
+      Teleport,
+      provide,
+      inject
+    } from '/node_modules/vue/dist/vue.runtime.esm-browser.prod.js';
+
+    // import { render, h, Text, Fragment, Teleport } from './runtime-dom.js';
+
+    // lesson-42 provide inject
+
+
+    const P3 = {
+      setup(props) {
+        const name = inject('name');
+        console.log("🚀 ~ setup ~ name:", name)
+        const age = inject('age', 30);
+        return () => {
+          return h('div', [name.value, age]);
+        }
+      }
+    }
+    const P2 = {
+      render() {
+        return h(P3)
+      }
+    }
+    const P1 = {
+      setup(props) {
+        const name = ref('pb');
+        setTimeout(() => {
+          name.value = 'handsome pb.'
+        }, 1000)
+        provide('name', name);
+
+
+        return () => h(P2)
+      }
+    }
+
+    // 在父组件中提供数据，子组件中获取数据
+    render(h(P1), app)
+
+    // p1 -> p2 -> p3
+    // 将p1的provide给p2
+    // p2的provide给p3
+  </script>
+</body>
+
+</html>
