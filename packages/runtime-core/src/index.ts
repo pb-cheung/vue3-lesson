@@ -1,3 +1,4 @@
+export * from './apiProvide';
 export * from './createVnode';
 export * from './h';
 export * from './renderer';

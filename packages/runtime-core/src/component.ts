@@ -1,7 +1,7 @@
 import { proxyRefs, reactive } from '@vue/reactivity';
 import { hasOwn, isFunction, ShapeFlags, toHandlerKey } from '@vue/shared';
 
-export function createComponentInstance(vnode) {
+export function createComponentInstance(vnode, parent) {
   const instance = {
     data: null, // 状态
     vnode, // 组件的虚拟节点
@@ -16,6 +16,9 @@ export function createComponentInstance(vnode) {
     proxy: null, // 用来代理props attrs data，让用户更方便的使用
     setupState: {},
     exposed: {},
+    parent,
+    // 所有的组件provide都一样
+    provides: parent ? parent.provides : Object.create(null), // 这种方法创建的空对象没有原型链
   };
 
   return instance;

@@ -297,19 +297,19 @@ export function createRenderer(renderOptions) {
     }
   };
 
-  function setupRenderEffect(instance, container, anchor) {
+  function setupRenderEffect(instance, container, anchor, parentComponent) {
     const { render } = instance;
     const componentUpdageFn = () => {
       // 我们要在这里区分：是第一次还是之后的
       if (!instance.isMounted) {
         const subTree = render.call(instance.proxy, instance.proxy); // 两个参数分别为render函数中的this指向，和proxy参数
         instance.subTree = subTree;
-        patch(null, subTree, container, anchor);
+        patch(null, subTree, container, anchor, instance);
         instance.isMounted = true;
       } else {
         // 基于状态的组件组件更新
         const subTree = render.call(instance.proxy, instance.proxy);
-        patch(instance.subTree, subTree, container, anchor);
+        patch(instance.subTree, subTree, container, anchor, parentComponent);
         instance.subTree = subTree;
       }
     };
@@ -325,11 +325,14 @@ export function createRenderer(renderOptions) {
   }
   const mountComponent = (vnode, container, anchor, parentComponent) => {
     // 1. 先创建组件实例，放到虚拟节点上
-    const instance = (vnode.component = createComponentInstance(vnode));
+    const instance = (vnode.component = createComponentInstance(
+      vnode,
+      parentComponent
+    ));
     // 2. 给实例的属性赋值
     setupComponent(instance);
     // 3. 创建一个effect
-    setupRenderEffect(instance, container, anchor);
+    setupRenderEffect(instance, container, anchor, parentComponent);
   };
   const hasPropsChange = (prevProps, nextProps) => {
     let nKeys = Object.keys(prevProps);
