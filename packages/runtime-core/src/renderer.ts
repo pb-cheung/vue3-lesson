@@ -22,25 +22,22 @@ export function createRenderer(renderOptions) {
   } = renderOptions;
 
   // 规范化子节点，将文本节点转换为虚拟节点
-  const normalizeChildren = (children) => {
-    if (Array.isArray(children)) {
-      return children.map((child) => {
-        if (typeof child === 'string' || typeof child === 'number') {
-          // 将字符串或数字转换为文本虚拟节点
-          return createVnode(Text, null, String(child));
-        }
-        return child;
-      });
+  const normalize = (children) => {
+    for (let i = 0; i < children.length; i++) {
+      if (typeof children[i] === 'string' || typeof children[i] === 'number') {
+        // 将字符串或数字转换为文本虚拟节点
+        children[i] = createVnode(Text, null, String(children[i]));
+      }
     }
     return children;
   };
 
   const mountChildren = (children, container, parentComponent) => {
     // 先规范化子节点
-    const normalizedChildren = normalizeChildren(children);
-    for (let i = 0; i < normalizedChildren.length; i++) {
+    normalize(children);
+    for (let i = 0; i < children.length; i++) {
       // normalizedChildren[i] 现在保证是虚拟节点
-      patch(null, normalizedChildren[i], container, parentComponent);
+      patch(null, children[i], container, parentComponent);
     }
   };
 
@@ -237,7 +234,7 @@ export function createRenderer(renderOptions) {
   const patchChildren = (n1, n2, el, parentComponent) => {
     // 儿子节点的情况：text/array/null
     const c1 = n1.children;
-    const c2 = n2.children;
+    const c2 = normalize(n2.children);
 
     const prevShapeFlag = n1.shapeFlag;
     const shapeFlag = n2.shapeFlag;
