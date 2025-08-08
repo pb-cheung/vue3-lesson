@@ -24,10 +24,15 @@ export function createRenderer(renderOptions) {
 
   // 规范化子节点，将文本节点转换为虚拟节点
   const normalize = (children) => {
-    for (let i = 0; i < children.length; i++) {
-      if (typeof children[i] === 'string' || typeof children[i] === 'number') {
-        // 将字符串或数字转换为文本虚拟节点
-        children[i] = createVnode(Text, null, String(children[i]));
+    if (Array.isArray(children)) {
+      for (let i = 0; i < children.length; i++) {
+        if (
+          typeof children[i] === 'string' ||
+          typeof children[i] === 'number'
+        ) {
+          // 将字符串或数字转换为文本虚拟节点
+          children[i] = createVnode(Text, null, String(children[i]));
+        }
       }
     }
     return children;
