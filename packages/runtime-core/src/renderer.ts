@@ -4,6 +4,7 @@ import { Fragment, isSameVnode, Text, createVnode } from './createVnode';
 import { queueJob } from './scheduler';
 import getSequence from './seq';
 import { createComponentInstance, setupComponent } from './component';
+import { invokeArray } from './apiLifecycle';
 
 // 完全不关心api层面的，可以跨平台
 export function createRenderer(renderOptions) {
@@ -301,16 +302,35 @@ export function createRenderer(renderOptions) {
     const { render } = instance;
     const componentUpdageFn = () => {
       // 我们要在这里区分：是第一次还是之后的
+      const { bm, m } = instance;
       if (!instance.isMounted) {
+        if (bm) {
+          invokeArray(bm);
+        }
+
         const subTree = render.call(instance.proxy, instance.proxy); // 两个参数分别为render函数中的this指向，和proxy参数
         instance.subTree = subTree;
         patch(null, subTree, container, anchor, instance);
         instance.isMounted = true;
+
+        if (m) {
+          invokeArray(m);
+        }
       } else {
+        const { bu, u } = instance;
+
+        if (bu) {
+          invokeArray(bu);
+        }
+
         // 基于状态的组件组件更新
         const subTree = render.call(instance.proxy, instance.proxy);
         patch(instance.subTree, subTree, container, anchor, parentComponent);
         instance.subTree = subTree;
+
+        if (u) {
+          invokeArray(u);
+        }
       }
     };
 

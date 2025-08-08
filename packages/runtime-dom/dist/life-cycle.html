@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>life-cycle</title>
+  </head>
+
+  <body>
+    <div id="app"></div>
+    <script type="module">
+      // import {
+      //   render,
+      //   h,
+      //   createVNode,
+      //   ref,
+      //   Text,
+      //   Fragment,
+      //   Teleport,
+      //   provide,
+      //   inject,
+      //   onBeforeMount,
+      //   onMounted,
+      //   onBeforeUpdate,
+      //   onUpdated,
+      // } from '/node_modules/vue/dist/vue.runtime.esm-browser.js';
+
+      import {
+        render,
+        h,
+        Text,
+        ref,
+        Fragment,
+        Teleport,
+        provide,
+        inject,
+        onBeforeMount,
+        onMounted,
+        onBeforeUpdate,
+        onUpdated,
+        getCurrentInstance,
+      } from './runtime-dom.js';
+
+      // lesson-45 生命周期钩子实现
+
+      // 父初始化 子初始化 父完成
+      // 父更新 子更新 子完成 父完成
+      const My = {
+        props: {
+          value: String,
+        },
+        setup(props, { emit, expose, slots, attrs }) {
+          console.log('child setup');
+          console.log(getCurrentInstance(), 'child');
+          // instance -> 钩子关联在一起，在特定的时机调用对应的钩子
+          onBeforeMount(() => {
+            console.log(getCurrentInstance(), 'child bug');
+            console.log('child beforeMount');
+          });
+          onMounted(() => {
+            console.log('child mounted');
+          });
+          onBeforeUpdate(() => {
+            console.log('child onBeforeUpdate');
+          });
+          onUpdated(() => {
+            console.log('child onUpdated');
+          });
+          return () => {
+            return h('div', props.value);
+          };
+        },
+      };
+
+      const VueComponent = {
+        setup(props, { emit, expose, slots, attrs }) {
+          console.log('parent setup');
+          console.log(getCurrentInstance(), 'parent');
+
+          // instance -> 钩子关联在一起，在特定的时机调用对应的钩子
+          onBeforeMount(() => {
+            console.log('parent beforeMount');
+          });
+          onMounted(() => {
+            console.log('parent mounted');
+          });
+          onBeforeUpdate(() => {
+            console.log('parent onBeforeUpdate');
+          });
+          onUpdated(() => {
+            console.log('parent onUpdated');
+          });
+
+          const val = ref('a');
+          setTimeout(() => {
+            val.value = 'b';
+          }, 3000);
+
+          // return () => {
+          //   return h('div', val.value);
+          // };
+          return () => {
+            return h(My, { value: val.value });
+          };
+        },
+      };
+
+      render(h(VueComponent), app);
+
+      // 打印信息：
+      //  parent setup
+      //  parent beforeMount
+      //  child setup
+      //  child beforeMount
+      //  child mounted
+      //  parent mounted
+      //  parent onBeforeUpdate
+      //  child onBeforeUpdate
+      //  child onUpdated
+      //  parent onUpdated
+
+      // 父组件setup -> 父组件挂载遇到子组件 -> 子组件setup -> 子组件挂载 -> 子组件挂载完成 -> 父组件（继续挂载）挂载完成
+
+      // 更新流程：父组件更新遇到子组件onBeforeUpdate -> 子组件更新onBeforeUpdate -> 子组件更新完成onUpdated -> 父组件更新完成onUpdated
+    </script>
+  </body>
+</html>
