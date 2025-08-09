@@ -13,6 +13,9 @@ export const enum LifeCycle {
 
 function createHook(type) {
   // 将当前的实例存到了此钩子上
+  // 将当前的实例存到了此钩子上（闭包）
+  // (hook, childInstance)
+  // (hook, parentInstance)
   return (hook, target = currentInstance) => {
     // console.log(type, hook);
 
@@ -22,15 +25,16 @@ function createHook(type) {
       const hooks = target[type] || (target[type] = []);
 
       // 把currentInstance存到这个函数中
+      // setup执行完毕后，就会将instance清空。钩子函数都是在setup执行完之后执行的
       const wrapHook = () => {
         // 在钩子执行前，对实例进行校正处理
-        setCurrentInstance(target);
+        setCurrentInstance(target); // 这样我们在hook中就可以使用getCurrentInstance api来获取instance使用了
         hook();
         unsetCurrentInstance();
       };
 
       // 在执行函数内部保证实例是正确的
-      hooks.push(wrapHook); // setup执行完毕后，就会将instance清空。钩子函数都是在setup执行完之后执行的
+      hooks.push(wrapHook);
     }
   };
 }

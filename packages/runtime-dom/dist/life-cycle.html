@@ -1,127 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>life-cycle</title>
-  </head>
 
-  <body>
-    <div id="app"></div>
-    <script type="module">
-      // import {
-      //   render,
-      //   h,
-      //   createVNode,
-      //   ref,
-      //   Text,
-      //   Fragment,
-      //   Teleport,
-      //   provide,
-      //   inject,
-      //   onBeforeMount,
-      //   onMounted,
-      //   onBeforeUpdate,
-      //   onUpdated,
-      // } from '/node_modules/vue/dist/vue.runtime.esm-browser.js';
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>life-cycle</title>
+</head>
 
-      import {
-        render,
-        h,
-        Text,
-        ref,
-        Fragment,
-        Teleport,
-        provide,
-        inject,
-        onBeforeMount,
-        onMounted,
-        onBeforeUpdate,
-        onUpdated,
-        getCurrentInstance,
-      } from './runtime-dom.js';
+<body>
+  <div id="app"></div>
+  <script type="module">
+    // import {
+    //   render,
+    //   h,
+    //   createVNode,
+    //   ref,
+    //   Text,
+    //   Fragment,
+    //   Teleport,
+    //   provide,
+    //   inject,
+    //   onBeforeMount,
+    //   onMounted,
+    //   onBeforeUpdate,
+    //   onUpdated,
+    // } from '/node_modules/vue/dist/vue.runtime.esm-browser.js';
 
-      // lesson-45 生命周期钩子实现
+    import {
+      render,
+      h,
+      Text,
+      ref,
+      Fragment,
+      Teleport,
+      provide,
+      inject,
+      onBeforeMount,
+      onMounted,
+      onBeforeUpdate,
+      onUpdated,
+      getCurrentInstance,
+    } from './runtime-dom.js';
 
-      // 父初始化 子初始化 父完成
-      // 父更新 子更新 子完成 父完成
-      const My = {
-        props: {
-          value: String,
-        },
-        setup(props, { emit, expose, slots, attrs }) {
-          console.log('child setup');
-          console.log(getCurrentInstance(), 'child');
-          // instance -> 钩子关联在一起，在特定的时机调用对应的钩子
-          onBeforeMount(() => {
-            console.log(getCurrentInstance(), 'child bug');
-            console.log('child beforeMount');
-          });
-          onMounted(() => {
-            console.log('child mounted');
-          });
-          onBeforeUpdate(() => {
-            console.log('child onBeforeUpdate');
-          });
-          onUpdated(() => {
-            console.log('child onUpdated');
-          });
-          return () => {
-            return h('div', props.value);
-          };
-        },
-      };
+    // lesson-45 生命周期钩子实现
 
-      const VueComponent = {
-        setup(props, { emit, expose, slots, attrs }) {
-          console.log('parent setup');
-          console.log(getCurrentInstance(), 'parent');
+    // 父初始化 子初始化 父完成
+    // 父更新 子更新 子完成 父完成
+    const ChildComponent = {
+      props: {
+        value: String,
+      },
+      setup(props, { emit, expose, slots, attrs }) {
+        console.log('child setup');
+        console.log(getCurrentInstance(), 'child instance in setup');
+        // instance -> 钩子关联在一起，在特定的时机调用对应的钩子
+        onBeforeMount(() => {
+          console.log("🚀 ~ onBeforeMount ~ child ~ instance: ", getCurrentInstance());
+          console.log('child beforeMount');
+        });
+        onMounted(() => {
+          console.log('child mounted');
+        });
+        onBeforeUpdate(() => {
+          console.log('child onBeforeUpdate');
+        });
+        onUpdated(() => {
+          console.log('child onUpdated');
+        });
+        return () => {
+          return h('div', props.value);
+        };
+      },
+    };
 
-          // instance -> 钩子关联在一起，在特定的时机调用对应的钩子
-          onBeforeMount(() => {
-            console.log('parent beforeMount');
-          });
-          onMounted(() => {
-            console.log('parent mounted');
-          });
-          onBeforeUpdate(() => {
-            console.log('parent onBeforeUpdate');
-          });
-          onUpdated(() => {
-            console.log('parent onUpdated');
-          });
+    // lesson-44 组合式函数的优点体现，可以把钩子函数单独抽离使用
+    const parentHook = () => {
+      // instance -> 钩子关联在一起，在特定的时机调用对应的钩子
+      onBeforeMount(() => {
+        console.log("🚀 ~ parent onBeforeMount ~ instance:", getCurrentInstance())
+        console.log('parent onBeforeMount');
+      });
+      onMounted(() => {
+        console.log('parent onMounted');
+      });
+      onBeforeUpdate(() => {
+        console.log('parent onBeforeUpdate');
+      });
+      onUpdated(() => {
+        console.log('parent onUpdated');
+      });
+    }
 
-          const val = ref('a');
-          setTimeout(() => {
-            val.value = 'b';
-          }, 3000);
+    const ParentComponent = {
+      setup(props, { emit, expose, slots, attrs }) {
+        console.log('parent setup');
+        console.log(getCurrentInstance(), 'parent instance in setup');
 
-          // return () => {
-          //   return h('div', val.value);
-          // };
-          return () => {
-            return h(My, { value: val.value });
-          };
-        },
-      };
+        parentHook();
 
-      render(h(VueComponent), app);
+        const val = ref('a');
+        setTimeout(() => {
+          val.value = 'b';
+        }, 3000);
 
-      // 打印信息：
-      //  parent setup
-      //  parent beforeMount
-      //  child setup
-      //  child beforeMount
-      //  child mounted
-      //  parent mounted
-      //  parent onBeforeUpdate
-      //  child onBeforeUpdate
-      //  child onUpdated
-      //  parent onUpdated
+        // return () => {
+        //   return h('div', val.value);
+        // };
+        return () => {
+          return h(ChildComponent, { value: val.value });
+        };
+      },
+    };
 
-      // 父组件setup -> 父组件挂载遇到子组件 -> 子组件setup -> 子组件挂载 -> 子组件挂载完成 -> 父组件（继续挂载）挂载完成
 
-      // 更新流程：父组件更新遇到子组件onBeforeUpdate -> 子组件更新onBeforeUpdate -> 子组件更新完成onUpdated -> 父组件更新完成onUpdated
-    </script>
-  </body>
+    // const ParentComponent = {
+    //   setup(props, { emit, expose, slots, attrs }) {
+    //     console.log('parent setup');
+    //     console.log(getCurrentInstance(), 'parent instance in setup');
+
+    //     // instance -> 钩子关联在一起，在特定的时机调用对应的钩子
+    //     onBeforeMount(() => {
+    //       console.log('parent onBeforeMount');
+    //     });
+    //     onMounted(() => {
+    //       console.log('parent onMounted');
+    //     });
+    //     onBeforeUpdate(() => {
+    //       console.log('parent onBeforeUpdate');
+    //     });
+    //     onUpdated(() => {
+    //       console.log('parent onUpdated');
+    //     });
+
+    //     const val = ref('a');
+    //     setTimeout(() => {
+    //       val.value = 'b';
+    //     }, 3000);
+
+    //     // return () => {
+    //     //   return h('div', val.value);
+    //     // };
+    //     return () => {
+    //       return h(ChildComponent, { value: val.value });
+    //     };
+    //   },
+    // };
+
+    render(h(ParentComponent), app);
+
+    // 打印信息：
+    //  parent setup
+    //  parent beforeMount
+    //  child setup
+    //  child beforeMount
+    //  child mounted
+    //  parent mounted
+    //  parent onBeforeUpdate
+    //  child onBeforeUpdate
+    //  child onUpdated
+    //  parent onUpdated
+
+    // 父组件setup -> 父组件挂载遇到子组件 -> 子组件setup -> 子组件挂载 -> 子组件挂载完成 -> 父组件（继续挂载）挂载完成
+
+    // 更新流程：父组件更新遇到子组件onBeforeUpdate -> 子组件更新onBeforeUpdate -> 子组件更新完成onUpdated -> 父组件更新完成onUpdated
+  </script>
+</body>
+
 </html>
