@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ref</title>
+</head>
+
+<body>
+  <div id="app"></div>
+  <script type="module">
+    import {
+      render,
+      h,
+      createVNode,
+      ref,
+      Text,
+      Fragment,
+      Teleport,
+      provide,
+      inject,
+      onBeforeMount,
+      onMounted,
+      onBeforeUpdate,
+      onUpdated,
+    } from '/node_modules/vue/dist/vue.runtime.esm-browser.js';
+
+    // import {
+    //   render,
+    //   h,
+    //   Text,
+    //   ref,
+    //   Fragment,
+    //   Teleport,
+    //   provide,
+    //   inject,
+    //   onBeforeMount,
+    //   onMounted,
+    //   onBeforeUpdate,
+    //   onUpdated,
+    //   getCurrentInstance,
+    // } from './runtime-dom.js';
+
+    // lesson-44 组件的引用ref
+    const ChildComponent = {
+      props: {
+        a: Number,
+      },
+      setup(props, { emit, expose, slots, attrs }) {
+        // 子组件中使用了expose，向外暴露元素
+        expose({
+          a: 200,
+        });
+        return () => {
+          return h('div', props.value);
+        };
+      },
+    };
+
+    const ParentComponent = {
+      setup(props, { emit, expose, slots, attrs }) {
+        const comp = ref(null);
+
+        onMounted(() => {
+          console.log('comp: ', comp.value); // comp.value即为子组件的引用，comp.value.a=100
+          // 子组件使用了expose，comp.value为compose暴露的对象
+        })
+        return () => {
+          return h(ChildComponent, { ref: comp, a: 100 });
+        };
+      },
+    };
+
+    render(h(ParentComponent), app);
+  </script>
+</body>
+
+</html>
