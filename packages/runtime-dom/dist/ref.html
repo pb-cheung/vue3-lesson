@@ -10,27 +10,12 @@
 <body>
   <div id="app"></div>
   <script type="module">
-    import {
-      render,
-      h,
-      createVNode,
-      ref,
-      Text,
-      Fragment,
-      Teleport,
-      provide,
-      inject,
-      onBeforeMount,
-      onMounted,
-      onBeforeUpdate,
-      onUpdated,
-    } from '/node_modules/vue/dist/vue.runtime.esm-browser.js';
-
     // import {
     //   render,
     //   h,
-    //   Text,
+    //   createVNode,
     //   ref,
+    //   Text,
     //   Fragment,
     //   Teleport,
     //   provide,
@@ -39,8 +24,23 @@
     //   onMounted,
     //   onBeforeUpdate,
     //   onUpdated,
-    //   getCurrentInstance,
-    // } from './runtime-dom.js';
+    // } from '/node_modules/vue/dist/vue.runtime.esm-browser.js';
+
+    import {
+      render,
+      h,
+      Text,
+      ref,
+      Fragment,
+      Teleport,
+      provide,
+      inject,
+      onBeforeMount,
+      onMounted,
+      onBeforeUpdate,
+      onUpdated,
+      getCurrentInstance,
+    } from './runtime-dom.js';
 
     // lesson-44 组件的引用ref
     const ChildComponent = {
@@ -49,9 +49,9 @@
       },
       setup(props, { emit, expose, slots, attrs }) {
         // 子组件中使用了expose，向外暴露元素
-        expose({
-          a: 200,
-        });
+        // expose({
+        //   a: 200,
+        // });
         return () => {
           return h('div', props.value);
         };
@@ -62,12 +62,16 @@
       setup(props, { emit, expose, slots, attrs }) {
         const comp = ref(null);
 
+        // 1. 如果ref放到组件上，指代的是组件实例，如果当前组件有expose，则是expose
+        // 2. 如果放到dom元素上，指代的就是dom元素
         onMounted(() => {
+          // console.log('comp a: ', comp.value.a);
           console.log('comp: ', comp.value); // comp.value即为子组件的引用，comp.value.a=100
-          // 子组件使用了expose，comp.value为compose暴露的对象
+          // 子组件使用了expose，comp.value为compose暴露的对象，comp.value.a=200
         })
         return () => {
-          return h(ChildComponent, { ref: comp, a: 100 });
+          // return h(ChildComponent, { ref: comp, a: 100 });
+          return h('div', { ref: comp, a: 100 }); // <div a="100"></div> ref指代dom元素的情况
         };
       },
     };

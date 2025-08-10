@@ -1,4 +1,4 @@
-import { ReactiveEffect } from '@vue/reactivity/src';
+import { isRef, ReactiveEffect } from '@vue/reactivity/src';
 import { ShapeFlags } from '@vue/shared';
 import { Fragment, isSameVnode, Text, createVnode } from './createVnode';
 import { queueJob } from './scheduler';
@@ -417,7 +417,7 @@ export function createRenderer(renderOptions) {
       n1 = null; // 就会执行后续的n2初始化
     }
 
-    const { type, shapeFlag } = n2;
+    const { type, shapeFlag, ref } = n2;
     switch (type) {
       case Text:
         processText(n1, n2, container);
@@ -446,7 +446,22 @@ export function createRenderer(renderOptions) {
           processComponent(n1, n2, container, anchor, parentComponent);
         }
     }
+
+    if (ref !== null) {
+      // n2是dom，还是组件，还是组件有expose
+      setRef(ref, n2);
+    }
   };
+  function setRef(rawRef, vnode) {
+    let value =
+      vnode.shapeFlag & ShapeFlags.STATEFUL_COMPONENT
+        ? vnode.component.exposed || vnode.component.proxy
+        : vnode.el;
+
+    if (isRef(rawRef)) {
+      rawRef.value = value;
+    }
+  }
 
   const unmount = (vnode) => {
     const { shapeFlag } = vnode;
