@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>函数式组件</title>
+</head>
+
+<body>
+  <div id="app"></div>
+  <script type="module">
+    // import {
+    //   render,
+    //   h,
+    //   createVNode,
+    //   ref,
+    //   Text,
+    // } from '/node_modules/vue/dist/vue.runtime.esm-browser.js';
+
+    import {
+      render,
+      h,
+      Text,
+      ref,
+    } from './runtime-dom.js';
+
+    // lesson-43 函数式组件
+    // 不推荐使用了，Vue3中没有做任何升级
+    function funcitonalComponent(props) {
+      return h('div', props.a + props.b);
+    }
+    render(h(funcitonalComponent, { a: 1, b: 2 }), app);
+  </script>
+</body>
+
+</html>

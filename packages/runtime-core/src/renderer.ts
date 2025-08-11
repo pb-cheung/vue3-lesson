@@ -302,7 +302,14 @@ export function createRenderer(renderOptions) {
       patchChildren(n1, n2, container, parentComponent);
     }
   };
-
+  function renderComponent(instance) {
+    const { render, vnode, proxy, props, attrs } = instance;
+    if (vnode.shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
+      return render.call(proxy, proxy);
+    } else {
+      return vnode.type(attrs); // 函数式组件
+    }
+  }
   function setupRenderEffect(instance, container, anchor, parentComponent) {
     const { render } = instance;
     const componentUpdageFn = () => {
@@ -313,7 +320,7 @@ export function createRenderer(renderOptions) {
           invokeArray(bm);
         }
 
-        const subTree = render.call(instance.proxy, instance.proxy); // 两个参数分别为render函数中的this指向，和proxy参数
+        const subTree = renderComponent(instance); // 两个参数分别为render函数中的this指向，和proxy参数
         instance.subTree = subTree;
         patch(null, subTree, container, anchor, instance);
         instance.isMounted = true;
@@ -329,7 +336,7 @@ export function createRenderer(renderOptions) {
         }
 
         // 基于状态的组件组件更新
-        const subTree = render.call(instance.proxy, instance.proxy);
+        const subTree = renderComponent(instance);
         patch(instance.subTree, subTree, container, anchor, parentComponent);
         instance.subTree = subTree;
 
