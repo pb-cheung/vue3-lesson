@@ -303,11 +303,11 @@ export function createRenderer(renderOptions) {
     }
   };
   function renderComponent(instance) {
-    const { render, vnode, proxy, props, attrs } = instance;
+    const { render, vnode, proxy, props, attrs, slots } = instance;
     if (vnode.shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
       return render.call(proxy, proxy);
     } else {
-      return vnode.type(attrs); // 函数式组件
+      return vnode.type(attrs, { slots }); // 函数式组件
     }
   }
   function setupRenderEffect(instance, container, anchor, parentComponent) {
@@ -329,6 +329,11 @@ export function createRenderer(renderOptions) {
           invokeArray(m);
         }
       } else {
+        // const {next} = instance;
+        // if (next) {
+        // 更新属性和插槽
+        //   updateCompnentPreRender(instance, next);
+        // }
         const { bu, u } = instance;
 
         if (bu) {
@@ -401,6 +406,10 @@ export function createRenderer(renderOptions) {
     const { props: prevProps } = n1;
     const { props: nextProps } = n2;
     updateProps(instance, prevProps, nextProps);
+
+    // FIXME: 加在了updateComponentPreRender方法中。在lesson-40 20秒看到有此函数
+    // 组件更新的时候 需要更新插槽
+    Object.assign(instance.slots, n2.children)
   };
   const processComponent = (n1, n2, container, anchor, parentComponent) => {
     if (n1 === null) {

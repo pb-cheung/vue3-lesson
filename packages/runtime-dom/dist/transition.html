@@ -1,70 +1,76 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Transition-1</title>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>函数式组件</title>
-</head>
-
-<body>
-  <div id="app"></div>
-  <style>
-    /* 下面我们会解释这些 class 是做什么的 */
-    .v-enter-active,
-    .v-leave-active {
-      transition: opacity 3s ease;
-    }
-
-    .v-enter-from,
-    .v-leave-to {
-      opacity: 0;
-    }
-  </style>
-  <script type="module">
-    import {
-      render,
-      h,
-      createVNode,
-      ref,
-      Text,
-      Transition,
-    } from '/node_modules/vue/dist/vue.runtime.esm-browser.js';
-
-    // import {
-    //   render,
-    //   h,
-    //   Text,
-    //   ref,
-    //   Transition,
-    // } from './runtime-dom.js';
-
-    // lesson-47 transition-1
-    const props = {
-      onBeforeEnter() {
-        console.log(arguments)
-      },
-      onEnter() {
-        console.log(arguments)
-      },
-      onLeave() {
-        console.log(arguments)
+  <body>
+    <div id="app"></div>
+    <style>
+      /* 下面我们会解释这些 class 是做什么的 */
+      .v-enter-active,
+      .v-leave-active {
+        transition: opacity 3s ease;
       }
-    }
-    render(h(Transition, props, {
-      default: () => {
-        return h('div', { style: { width: '100px', height: '100px', background: 'red' } })
+
+      .v-enter-from,
+      .v-leave-to {
+        opacity: 0;
       }
-    }), app);
+    </style>
+    <script type="module">
+      // import {
+      //   render,
+      //   h,
+      //   createVNode,
+      //   ref,
+      //   Text,
+      //   Transition,
+      // } from '/node_modules/vue/dist/vue.runtime.esm-browser.js';
 
-    setTimeout(() => {
-      render(h(Transition, props, {
-        default: () => {
-          return h('p', { style: { width: '100px', height: '100px', background: 'blue' } })
-        }
-      }), app);
-    }, 2000)
-  </script>
-</body>
+      import { render, h, Text, ref, Transition } from './runtime-dom.js';
 
+      // lesson-47 transition-1
+
+      const props = {
+        onBeforeEnter(el) {
+          console.log(arguments, 'onBeforeEnter');
+        },
+        onEnter(el) {
+          console.log(arguments, 'onEnter');
+        },
+        onLeave(el) {
+          console.log(arguments, 'onEnter');
+        },
+      };
+      render(
+        h(Transition, props, {
+          a: 1,
+          default: () => {
+            return h('div', {
+              style: { width: '100px', height: '100px', background: 'red' },
+            });
+          },
+        }),
+        app
+      );
+
+      setTimeout(() => {
+        console.log('执行');
+        render(
+          h(Transition, props, {
+            b: 2,
+            default: () => {
+              return h('p', {
+                style: { width: '100px', height: '100px', background: 'blue' },
+              });
+            },
+          }),
+          app
+        );
+      }, 2000);
+    </script>
+  </body>
 </html>
