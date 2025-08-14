@@ -310,9 +310,16 @@ export function createRenderer(renderOptions) {
       return vnode.type(attrs, { slots }); // 函数式组件
     }
   }
+  const updateComponentPreRender = (instance, next) => {
+    instance.next = null;
+    instance.vnode = next; // instance.props
+    updateProps(instance, instance.props, next.props);
+
+    // 组件更新的时候 需要更新插槽
+    Object.assign(instance.slots, next.children);
+  }
   function setupRenderEffect(instance, container, anchor, parentComponent) {
-    const { render } = instance;
-    const componentUpdageFn = () => {
+    const componentUpdateFn = () => {
       // 我们要在这里区分：是第一次还是之后的
       const { bm, m } = instance;
       if (!instance.isMounted) {
@@ -329,12 +336,11 @@ export function createRenderer(renderOptions) {
           invokeArray(m);
         }
       } else {
-        // const {next} = instance;
-        // if (next) {
-        // 更新属性和插槽
-        //   updateCompnentPreRender(instance, next);
-        // }
-        const { bu, u } = instance;
+        const { next, bu, u } = instance;
+        if (next) {
+          // 更新属性和插槽
+          updateComponentPreRender(instance, next);
+        }
 
         if (bu) {
           invokeArray(bu);
@@ -351,7 +357,7 @@ export function createRenderer(renderOptions) {
       }
     };
 
-    const effect = new ReactiveEffect(componentUpdageFn, () => {
+    const effect = new ReactiveEffect(componentUpdateFn, () => {
       queueJob(update);
     });
 
@@ -401,15 +407,23 @@ export function createRenderer(renderOptions) {
       }
     }
   };
+  const shouldComponentUpdate = (n1, n2) => {
+    const { props: prevProps, children: prevChildren } = n1;
+    const { props: nextProps, children: nextChildren } = n2;
+
+    if (prevChildren || nextChildren) return true; // 有插槽直接走重新渲染即可
+
+    if (prevProps === nextProps) return false;
+
+    return hasPropsChange(prevProps, nextProps);
+  }
   const updateComponent = (n1, n2) => {
     const instance = (n2.component = n1.component); // 复用组件的实例
-    const { props: prevProps } = n1;
-    const { props: nextProps } = n2;
-    updateProps(instance, prevProps, nextProps);
 
-    // FIXME: 加在了updateComponentPreRender方法中。在lesson-40 20秒看到有此函数
-    // 组件更新的时候 需要更新插槽
-    Object.assign(instance.slots, n2.children)
+    if (shouldComponentUpdate(n1, n2)) {
+      instance.next = n2; // 如果调用update 有next属性，说明是属性更新，插槽更新
+      instance.update(); // 让更新逻辑统一
+    }
   };
   const processComponent = (n1, n2, container, anchor, parentComponent) => {
     if (n1 === null) {
@@ -431,6 +445,10 @@ export function createRenderer(renderOptions) {
     if (n1 && !isSameVnode(n1, n2)) {
       unmount(n1);
       n1 = null; // 就会执行后续的n2初始化
+    }
+
+    if (!n2) {
+      return;
     }
 
     const { type, shapeFlag, ref } = n2;
