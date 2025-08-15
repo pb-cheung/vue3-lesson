@@ -9,14 +9,14 @@
   <body>
     <div id="app"></div>
     <style>
-      /* 下面我们会解释这些 class 是做什么的 */
-      .v-enter-active,
-      .v-leave-active {
-        transition: opacity 3s ease;
+      /* 全流程共6个类 enterfrom、active、to，leaveFrom、active、to */
+      .x-enter-active,
+      .x-leave-active {
+        transition: opacity 0.8s ease;
       }
 
-      .v-enter-from,
-      .v-leave-to {
+      .x-enter-from,
+      .x-leave-to {
         opacity: 0;
       }
     </style>
@@ -35,6 +35,7 @@
       // lesson-47 transition-1
 
       const props = {
+        name: 'x',
         onBeforeEnter(el) {
           console.log(arguments, 'onBeforeEnter');
         },
@@ -70,6 +71,20 @@
           app
         );
       }, 2000);
+
+      setTimeout(() => {
+        render(
+          h(Transition, props, {
+            c: 3,
+            default: () => {
+              return h('div', {
+                style: { width: '100px', height: '100px', background: 'red' },
+              });
+            },
+          }),
+          app
+        );
+      }, 3000);
     </script>
   </body>
 </html>

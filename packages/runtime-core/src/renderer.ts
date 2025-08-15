@@ -48,7 +48,7 @@ export function createRenderer(renderOptions) {
   };
 
   const mountElement = (vnode, container, anchor, parentComponent) => {
-    const { type, children, props, shapeFlag } = vnode;
+    const { type, children, props, shapeFlag, transition } = vnode;
 
     // 第一次初始化的时候，我们把虚拟节点和真实dom创建关联，vnode.el = 真实dom
     // 第二次（后续）渲染新的vnode，可以和上一次的vnode做比对，之后更新对应的el元素，可以后续再复用这个dom元素
@@ -68,8 +68,16 @@ export function createRenderer(renderOptions) {
       mountChildren(children, el, parentComponent);
     }
 
+    if (transition) {
+      transition.beforeEnter(el);
+    }
+
     hostInsert(el, container, anchor);
     // hostCreateElement(vnode)
+
+    if (transition) {
+      transition.enter(el);
+    }
   };
   const processText = (n1, n2, container) => {
     if (n1 === null) {
@@ -498,7 +506,8 @@ export function createRenderer(renderOptions) {
   }
 
   const unmount = (vnode) => {
-    const { shapeFlag } = vnode;
+    const { shapeFlag, transition, el } = vnode;
+    const performRemove = () => hostRemove(vnode.el);
     if (vnode.type === Fragment) {
       unmountChildren(vnode.children);
     } else if (shapeFlag & ShapeFlags.COMPONENT) {
@@ -506,7 +515,11 @@ export function createRenderer(renderOptions) {
     } else if (shapeFlag & ShapeFlags.TELEPORT) {
       vnode.type.remove(vnode, unmountChildren);
     } else {
-      hostRemove(vnode.el);
+      if (transition) {
+        transition.leave(el, performRemove);
+      } else {
+        performRemove();
+      }
     }
   };
   // 将虚拟节点变成真实节点进行渲染
