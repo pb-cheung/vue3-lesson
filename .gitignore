@@ -1,5 +1,6 @@
 # IDE configurations
-.vscode
+.vscode/**
+!.vscode/settings.json
 .idea
 
 # Dependencies
