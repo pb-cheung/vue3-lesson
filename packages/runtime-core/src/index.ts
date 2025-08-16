@@ -4,6 +4,7 @@ export * from './component';
 export * from './createVnode';
 export * from './h';
 export * from './renderer';
+export * from './components/KeepAlive';
 export * from './components/Teleport';
 export * from './components/Transition';
 

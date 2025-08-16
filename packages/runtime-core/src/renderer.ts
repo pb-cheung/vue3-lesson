@@ -325,7 +325,7 @@ export function createRenderer(renderOptions) {
 
     // 组件更新的时候 需要更新插槽
     Object.assign(instance.slots, next.children);
-  }
+  };
   function setupRenderEffect(instance, container, anchor, parentComponent) {
     const componentUpdateFn = () => {
       // 我们要在这里区分：是第一次还是之后的
@@ -400,7 +400,7 @@ export function createRenderer(renderOptions) {
   };
   const updateProps = (instance, prevProps, nextProps) => {
     // instance.props 是响应式的
-    if (hasPropsChange(prevProps, nextProps)) {
+    if (hasPropsChange(prevProps, nextProps || {})) {
       // 属性是否存在变化
       for (let key in nextProps) {
         // 新的覆盖旧的
@@ -423,8 +423,8 @@ export function createRenderer(renderOptions) {
 
     if (prevProps === nextProps) return false;
 
-    return hasPropsChange(prevProps, nextProps);
-  }
+    return hasPropsChange(prevProps, nextProps || {});
+  };
   const updateComponent = (n1, n2) => {
     const instance = (n2.component = n1.component); // 复用组件的实例
 
