@@ -1,9 +1,12 @@
 {
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
-  // "editor.codeActionsOnSave": {
-  //   "source.fixAll.eslint": "explicit"
-  // },
+
+  // Ensure editor uses 2 spaces while typing
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false, // 这会让你在编辑时始终用2空格，且不再被自动检测改回4。
+
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true
