@@ -17,6 +17,7 @@ export function createComponentInstance(vnode, parent) {
     setupState: {},
     exposed: null,
     parent,
+    ctx: {} as any, // 如果是KeepAlive组件，就将dom api放入到这个属性上
     // 所有的组件provide都一样
     provides: parent ? parent.provides : Object.create(null), // 这种方法创建的空对象没有原型链
   };

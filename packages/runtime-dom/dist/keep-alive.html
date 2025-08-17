@@ -37,6 +37,7 @@
       // 2. 组件不会被卸载，而是将dom移除掉
       // 3. 内部需要缓存dom
       const A1 = {
+        a: 'a1',
         setup() {
           onMounted(() => {
             console.log('🚀 ~ onMounted a1');
@@ -47,6 +48,7 @@
         },
       };
       const A2 = {
+        a: 'a2',
         setup() {
           onMounted(() => {
             console.log('🚀 ~ onMounted a2');
@@ -57,6 +59,7 @@
         },
       };
       const A3 = {
+        a: 'a3',
         setup() {
           onMounted(() => {
             console.log('🚀 ~ onMounted a3');
@@ -69,7 +72,7 @@
 
       render(
         h(KeepAlive, null, {
-          default: () => h(A1),
+          default: () => h(A1, { key: 'a1' }),
         }),
         app
       );
@@ -77,7 +80,7 @@
       setTimeout(() => {
         render(
           h(KeepAlive, null, {
-            default: () => h(A2),
+            default: () => h(A2, { key: 'a2' }),
           }),
           app
         );
@@ -86,7 +89,7 @@
       setTimeout(() => {
         render(
           h(KeepAlive, null, {
-            default: () => h(A1),
+            default: () => h(A1, { key: 'a1' }),
           }),
           app
         );
@@ -95,11 +98,19 @@
       setTimeout(() => {
         render(
           h(KeepAlive, null, {
-            default: () => h(A3),
+            default: () => h(A3, { key: 'a3' }),
           }),
           app
         );
       }, 3000);
+      setTimeout(() => {
+        render(
+          h(KeepAlive, null, {
+            default: () => h(A2, { key: 'a2' }),
+          }),
+          app
+        );
+      }, 4000);
     </script>
   </body>
 </html>

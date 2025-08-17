@@ -5,6 +5,7 @@ import { queueJob } from './scheduler';
 import getSequence from './seq';
 import { createComponentInstance, setupComponent } from './component';
 import { invokeArray } from './apiLifecycle';
+import { isKeepAlive } from '.';
 
 // 完全不关心api层面的，可以跨平台
 export function createRenderer(renderOptions) {
@@ -380,6 +381,18 @@ export function createRenderer(renderOptions) {
       vnode,
       parentComponent
     ));
+
+    if (isKeepAlive(vnode)) {
+      instance.ctx.renderer = {
+        createElement: hostCreateElement, // 内部需要创建一个div来缓存dom
+        move(vnode, container) {
+          // 把之前渲染的dom放到（缓存）容器中
+          hostInsert(vnode.component.subTree.el, container);
+        },
+        unmount, // 如果组件切换，需要将现在容器中的元素移除
+      };
+    }
+
     // 2. 给实例的属性赋值
     setupComponent(instance);
     // 3. 创建一个effect
