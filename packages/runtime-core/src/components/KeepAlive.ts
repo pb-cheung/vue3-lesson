@@ -16,6 +16,19 @@ export const KeepAlive = {
     const cacheSubTree = () => {
       cache.set(pendingCacheKey, instance.subTree); // 缓存组件的虚拟节点，里面有组件的dom元素
     };
+
+    // 这是keepalive特有的初始化方法
+    // 激活时执行
+    const { move, createElement } = instance.ctx.renderer;
+    instance.ctx.active = function (vnode, container, anchor) {
+      move(vnode, container, anchor);
+    };
+    // 失活时执行
+    const storageContent = createElement('div');
+    instance.ctx.deactivate = function (vnode) {
+      move(vnode, storageContent, null); // dom元素临时移动到这个div中，但是没有被销毁
+    };
+
     onMounted(cacheSubTree);
     onUpdated(cacheSubTree);
 
@@ -29,7 +42,7 @@ export const KeepAlive = {
       const cacheVNode = cache.get(key);
       if (cacheVNode) {
         vnode.component = cacheVNode.component; // 直接复用
-        vnode.shapeFlag |= ShapeFlags.COMPONENT_SHOULD_KEEP_ALIVE; // 告诉它不要做初始化操作
+        vnode.shapeFlag |= ShapeFlags.COMPONENT_KEPT_ALIVE; // 告诉它不要做初始化操作
       } else {
         keys.add(key);
       }
@@ -38,4 +51,4 @@ export const KeepAlive = {
   },
 };
 
-export const isKeepAlive = (value) => value.__isKeepAlive;
+export const isKeepAlive = (value) => value.type.__isKeepAlive;

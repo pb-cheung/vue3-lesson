@@ -385,9 +385,9 @@ export function createRenderer(renderOptions) {
     if (isKeepAlive(vnode)) {
       instance.ctx.renderer = {
         createElement: hostCreateElement, // 内部需要创建一个div来缓存dom
-        move(vnode, container) {
+        move(vnode, container, anchor) {
           // 把之前渲染的dom放到（缓存）容器中
-          hostInsert(vnode.component.subTree.el, container);
+          hostInsert(vnode.component.subTree.el, container, anchor);
         },
         unmount, // 如果组件切换，需要将现在容器中的元素移除
       };
@@ -448,8 +448,13 @@ export function createRenderer(renderOptions) {
   };
   const processComponent = (n1, n2, container, anchor, parentComponent) => {
     if (n1 === null) {
-      // 组件渲染
-      mountComponent(n2, container, anchor, parentComponent);
+      if (n2.shapeFlag & ShapeFlags.COMPONENT_KEPT_ALIVE) {
+        // 需要走keepalive中的激活方法
+        parentComponent.ctx.active(n2, container, anchor);
+      } else {
+        // 组件渲染
+        mountComponent(n2, container, anchor, parentComponent);
+      }
     } else {
       // 组件更新
       updateComponent(n1, n2);
