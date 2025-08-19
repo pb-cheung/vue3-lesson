@@ -21,7 +21,7 @@ export const KeepAlive = {
     // 激活时执行
     const { move, createElement } = instance.ctx.renderer;
     instance.ctx.active = function (vnode, container, anchor) {
-      move(vnode, container, anchor);
+      move(vnode, container, anchor); // 将元素直接移入到容器中
     };
     // 失活时执行
     const storageContent = createElement('div');
@@ -32,9 +32,10 @@ export const KeepAlive = {
     onMounted(cacheSubTree);
     onUpdated(cacheSubTree);
 
+    // 缓存的是组件 -> 组件里有subTree -> subTree里有el -> 移动到页面中
+
     return () => {
       const vnode = slots.default();
-
       const comp = vnode.type;
 
       const key = vnode.key == null ? comp : vnode.key;
@@ -46,6 +47,8 @@ export const KeepAlive = {
       } else {
         keys.add(key);
       }
+
+      vnode.shapeFlag |= ShapeFlags.COMPONENT_SHOULD_KEEP_ALIVE; // 这个组件不需要真的卸载，卸载的dom临时放到容器中
       return vnode; // 等待组件加载完毕后再去缓存
     };
   },

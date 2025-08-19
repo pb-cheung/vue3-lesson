@@ -113,14 +113,14 @@ export function createRenderer(renderOptions) {
     }
   };
 
-  const unmountChildren = (children) => {
+  const unmountChildren = (children, parentComponent) => {
     for (let i = 0; i < children.length; i++) {
       const child = children[i];
-      unmount(child);
+      unmount(child, parentComponent);
     }
   };
 
-  const patchKeyedChildren = (c1, c2, el) => {
+  const patchKeyedChildren = (c1, c2, el, parentComponent) => {
     // 比较两个儿子的差异，更新el
     // 常用到的api：appendChild、removeChild、insertBefore
     // [a,b,c,e,f,d]
@@ -182,7 +182,7 @@ export function createRenderer(renderOptions) {
       // 老的多
       if (i <= e1) {
         while (i <= e1) {
-          unmount(c1[i]); // 将元素一个个删除
+          unmount(c1[i], parentComponent); // 将元素一个个删除
           i++;
         }
       }
@@ -213,7 +213,7 @@ export function createRenderer(renderOptions) {
       const newIndex = keyToNewIndexMap.get(vnode.key); // 通过key找索引
       if (newIndex == undefined) {
         // 如果新的里面找不到则说明老的有的要删除
-        unmount(vnode);
+        unmount(vnode, parentComponent);
       } else {
         newIndexToOldMapIndex[newIndex - s2] = i;
         // 比较前后节点的差异，更新属性和儿子
@@ -264,7 +264,7 @@ export function createRenderer(renderOptions) {
     // 1. + 2.
     if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
       if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
-        unmountChildren(c1);
+        unmountChildren(c1, parentComponent);
       }
 
       if (c1 !== c2) {
@@ -274,10 +274,10 @@ export function createRenderer(renderOptions) {
       if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
         if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
           // 3. 全量diff算法，两个数组比对
-          patchKeyedChildren(c1, c2, el);
+          patchKeyedChildren(c1, c2, el, parentComponent);
         } else {
           // 4.
-          unmountChildren(c1);
+          unmountChildren(c1, parentComponent);
         }
       } else {
         // 5.
@@ -449,6 +449,7 @@ export function createRenderer(renderOptions) {
   const processComponent = (n1, n2, container, anchor, parentComponent) => {
     if (n1 === null) {
       if (n2.shapeFlag & ShapeFlags.COMPONENT_KEPT_ALIVE) {
+        debugger;
         // 需要走keepalive中的激活方法
         parentComponent.ctx.active(n2, container, anchor);
       } else {
@@ -469,7 +470,7 @@ export function createRenderer(renderOptions) {
 
     // 直接移除老的dom元素，初始化新的dom元素
     if (n1 && !isSameVnode(n1, n2)) {
-      unmount(n1);
+      unmount(n1, parentComponent);
       n1 = null; // 就会执行后续的n2初始化
     }
 
@@ -523,13 +524,17 @@ export function createRenderer(renderOptions) {
     }
   }
 
-  const unmount = (vnode) => {
+  const unmount = (vnode, parentComponent) => {
     const { shapeFlag, transition, el } = vnode;
     const performRemove = () => hostRemove(vnode.el);
-    if (vnode.type === Fragment) {
-      unmountChildren(vnode.children);
+    if (shapeFlag & ShapeFlags.COMPONENT_SHOULD_KEEP_ALIVE) {
+      // 需要走keep走失活逻辑
+      // parentComponent.ctx.deactivate(vnode);
+      console.log('并非卸载');
+    } else if (vnode.type === Fragment) {
+      unmountChildren(vnode.children, parentComponent);
     } else if (shapeFlag & ShapeFlags.COMPONENT) {
-      unmount(vnode.component.subTree); // 组件的虚拟节点是subTree，真实节点el在subTree下
+      unmount(vnode.component.subTree, parentComponent); // 组件的虚拟节点是subTree，真实节点el在subTree下
     } else if (shapeFlag & ShapeFlags.TELEPORT) {
       vnode.type.remove(vnode, unmountChildren);
     } else {
@@ -547,7 +552,7 @@ export function createRenderer(renderOptions) {
       // 我要移除当前容器中的dom元素
       if (container._vnode) {
         // console.log('🚀 ~ render ~ _vnode:', container._vnode);
-        unmount(container._vnode);
+        unmount(container._vnode, null);
       }
     } else {
       patch(container._vnode || null, vnode, container);
