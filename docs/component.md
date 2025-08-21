@@ -1,18 +1,58 @@
 # component
 
-## 概念
+## 前置概念
 
-虚拟节点 ≈ virtual DOM ≈ vdom ≈ vnode
+**虚拟 DOM**： 文档中很多描述它的词含义基本一致 `Virtual DOM` ≈ `VDOM` ≈ `vnode` ≈ `VNode`。
+它是一种技术路线——用 JavaScript（vnode 对象）描述标识 UI（HTML 标签），vnode 在 Vue 中也是一种数据结构，有 type、props、children 几个字段。
 
-挂载（mount）：把虚拟节点渲染成真实 DOM 节点并挂载到 DOM 树上的过程。
+**`h()`**： 是 hyperscript 的简称——意思是“能生成 HTML (超文本标记语言) 的 JavaScript”，描述有点抽象，就是用来创建 vnodes 的。
 
-打补丁（patch）：虚拟节点变化后，新旧 vnode 对比后，找到最小变化并更新对应 DOM 节点的过程。
+**`mount`**：挂载，渲染器遍历`虚拟DOM树`，并根据此构建`真实的DOM树`的过程。
 
-mount 可以算作一种特殊的 patch（旧的 vnode 不存在）情况。
+**`patch`**：打补丁、更新，虚拟节点变化后，新旧 vnode 对比后，找到最小的区别变化并应用到真实的 DOM 树上的过程。mount 可以算作一种特殊的 patch（旧的 vnode 不存在）情况。
 
 ## 渲染函数
 
-渲染函数 render，接收 vnode 参数，并将其渲染成真实的 DOM 元素。h 函数接收组件定义，将其渲染成 vnode。
+组件的渲染函数：`render`，通过渲染函数来渲染组件更接近底层实现，日常开发中常用的模板会先被编译成 render 函数再进行处理，二者同时出现渲染函数优先。
+
+其按照不同的 API 风格，有两种形态
+
+**选项式 API** 中，声明 render 函数：
+
+```javascript
+import { h } from 'vue';
+
+export default {
+  data() {
+    return {
+      msg: 'hello',
+    };
+  },
+  render() {
+    return h('div', this.msg);
+  },
+};
+```
+
+**组合式 API**中，`setup` 返回一个匿名的 render 函数：
+
+```javascript
+import { ref, h } from 'vue';
+
+export default {
+  props: {
+    /* ... */
+  },
+  setup(props) {
+    const count = ref(1);
+
+    // 返回渲染函数
+    return () => h('div', props.msg + count.value);
+  },
+};
+```
+
+接收 vnode 参数，并将其渲染成真实的 DOM 元素。h 函数接收组件定义，将其渲染成 vnode。
 
 这课程讲解，从渲染函数`h`的方式来渲染组件展开，一步步实现组件渲染功能。
 
