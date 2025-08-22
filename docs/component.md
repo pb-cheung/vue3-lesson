@@ -71,7 +71,19 @@ function render() {
 
 ## 实现
 
-### 虚拟节点
+### 组件 vnode
+
+组件没有一个 html 标签与其对应，它的类型就是组件本身的定义，即：
+
+```javascript
+{
+  type: {}, // 组件定义选项对象。和Vue2中Vue.component(comp-id, {Function | Object} [definition])第二个参数一样
+  props: {},
+  children: {},
+}
+```
+
+#### 创建 vnode 的函数中添加对组件的支持
 
 `h` -> `createVnode`
 
@@ -86,17 +98,18 @@ const shapeFlag = isString(type)
   : 0;
 ```
 
-### 渲染
+### 组件渲染
 
-`入口render` -> `patch` -> `processComponent` -> `mountComponent` -> `subTree = 组件的render()` -> `patch(subTree)`
+渲染过程：
 
-上图的这个`render`不是组件对象中的 render，是入口 render 或者是组件父级的 render。
+`render` -> `patch` -> `processComponent` -> `mountComponent` -> `subTree = compOpt.render()` -> `patch(subTree)`
 
-patch 函数中根据 vnode 类型和标识（`type`+`shapeFlag`） 进行分支处理（switch-case），新建组件对应的分支，创建对应的处理函数`processComponent`和挂载函数`mountComponent`。
+说明：
 
-**挂载**操作做的就是：调用 patch 函数，传入组件内容的 vnode，创建真实的 dom。
-
-获取`组件内容的vnode`，即组件 render 函数的返回值，然后调用 patch 渲染：
+- 第一个`render`是 Vue 提供的 API，是渲染函数，是我们程序的起始。
+- 第二个`render`是组件选项对象中的渲染函数，不是组件对象中的 render，为了区分我这里把它写成`compOpt.render`。
+- `patch` 函数中根据 vnode 类型和标识（`type`+`shapeFlag`） 进行分支处理（switch-case），新建组件对应的分支，创建对应的处理函数`processComponent`和挂载函数`mountComponent`。
+- `compOpt.render()`渲染函数运行，得到组件的 vnode 赋值给 subTree，然后进行**挂载**：`vnode => 真实dom`，我们前面已经掌握了，使用`patch(null, subTree, container)`。
 
 ```javascript
 const { render } = vnode.type; // 组件具体的定义在组件vnode的type上（h函数的第一个参数为type）
@@ -127,6 +140,18 @@ const VueComponent = {
 // h(VueComponent) = vnode 产生的组件内的虚拟节点
 // render函数返回的虚拟节点，这个才是最终要渲染的内容 = subTree
 render(h(VueComponent), app);
+```
+
+### 组件状态化实现
+
+`stateful`，就是组件自己持有且能改变的数据，主要是指 data()返回的对象，每个组件的状态要各自独立，使用面向对象思想中**类**和**实例**概念，为每个组件创建一个实例来实现状态化。
+
+前置概念部分的示例中可以看到，渲染函数中可以使用组件状态，且`this`指向组件状态数据。
+
+```javascript
+  render() {
+    return h('div', this.msg);
+  }
 ```
 
 ### props&attrs
