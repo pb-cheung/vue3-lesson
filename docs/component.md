@@ -146,12 +146,27 @@ render(h(VueComponent), app);
 
 `stateful`，就是组件自己持有且能改变的数据，主要是指 data()返回的对象，每个组件的状态要各自独立，使用面向对象思想中**类**和**实例**概念，为每个组件创建一个实例来实现状态化。
 
+我们从处理 data()返回对象开始实现：
+
+- 它是响应式的，被修改后，使用到它的模板会自动刷新
+- 渲染函数的 this 指向它
+
 前置概念部分的示例中可以看到，渲染函数中可以使用组件状态，且`this`指向组件状态数据。
 
 ```javascript
   render() {
     return h('div', this.msg);
   }
+```
+
+```javascript
+const { data, render } = vnode.type; // 组件具体的定义在组件vnode的type上（h函数的第一个参数为type）
+const state = reactive(data());
+// 渲染逻辑使用effect包裹，实现自动更新渲染
+effect(() => {
+  const subTree = render.call(state, state); // 渲染函数绑定this到状态对象
+  patch(null, subTree, container);
+});
 ```
 
 ### props&attrs
