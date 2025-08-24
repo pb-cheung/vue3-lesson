@@ -159,6 +159,8 @@ render(h(VueComponent), app);
   }
 ```
 
+具体实现：
+
 ```javascript
 const { data, render } = vnode.type; // 组件具体的定义在组件vnode的type上（h函数的第一个参数为type）
 const state = reactive(data());
@@ -168,6 +170,11 @@ effect(() => {
   patch(null, subTree, container);
 });
 ```
+
+#### 创建实例，封装状态
+
+以上只实现了组件的渲染，还需要添加更新，对应的就是`patch(oldVnode, newVnode, container)`，前面示例中 render 函数内会把接收的 vnode 添加到容器的\_vnode 属性上供更新时候比对使用。
+组件中也使用类似的方式记录上次渲染内容即`subTree`，还有`isMounted`——记录是否已经挂载来进行 mount 和 patch 分支逻辑，它们也是组件的状态，创建一个**实例**封装单个组件这些状态。
 
 ### props&attrs
 
