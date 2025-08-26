@@ -184,6 +184,48 @@ attrs = 所有属性 - props
 
 props 是特殊的 attribute，在组件中声明式（props）或者函数式（defineProps）明确定义的属性 attribute。
 
+#### props 更新实现
+
+要注意有“两个”props
+
+组件 MyComponent 在父组件中使用
+
+```html
+<MyComponent title="A Big Title" :other="val" />
+```
+
+以上对应的虚拟节点内容会是这样：
+
+```javascript
+const vnode = {
+  props: {
+    title: 'A Big Title',
+    other: this.val,
+  },
+};
+```
+
+以下是组件的声明定义：
+
+```javascript
+const MyComponent = {
+  name: 'MyComponent',
+  // 组件接收名为 title 的 props，并且该 props 的类型为 String
+  props: {
+    title: String,
+  },
+  render() {
+    return {
+      type: 'div',
+      children: `count is: ${this.title}`, // 访问 props 数据
+    };
+  },
+};
+```
+
+总结以上：我们看到的一个 props 是父组件的虚拟节点中的 props 对应`vnode.props`，另一个是组件定义中的 props，对应`vnode.type.props`
+实现这块功能的时候要注意区分。
+
 #### attrs&$attrs
 
 引用官网文档中的相关描述，厘清概念规则：
