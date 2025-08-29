@@ -1,5 +1,5 @@
 import { isRef, ReactiveEffect } from '@vue/reactivity/src';
-import { ShapeFlags } from '@vue/shared';
+import { PatchFlags, ShapeFlags } from '@vue/shared';
 import { Fragment, isSameVnode, Text, createVnode } from './createVnode';
 import { queueJob } from './scheduler';
 import getSequence from './seq';
@@ -39,12 +39,12 @@ export function createRenderer(renderOptions) {
     return children;
   };
 
-  const mountChildren = (children, container, parentComponent) => {
+  const mountChildren = (children, container, anchor, parentComponent) => {
     // 先规范化子节点
     normalize(children);
     for (let i = 0; i < children.length; i++) {
       // normalizedChildren[i] 现在保证是虚拟节点
-      patch(null, children[i], container, parentComponent);
+      patch(null, children[i], container, anchor, parentComponent);
     }
   };
 
@@ -66,7 +66,7 @@ export function createRenderer(renderOptions) {
     if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
       hostSetElementText(el, children);
     } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
-      mountChildren(children, el, parentComponent);
+      mountChildren(children, el, anchor, parentComponent);
     }
 
     if (transition) {
@@ -97,7 +97,7 @@ export function createRenderer(renderOptions) {
       // 初始化操作
       mountElement(n2, container, anchor, parentComponent);
     } else {
-      patchElement(n1, n2, container, parentComponent);
+      patchElement(n1, n2, container, anchor, parentComponent);
     }
   };
   const patchProps = (oldProps, newProps, el) => {
@@ -246,7 +246,7 @@ export function createRenderer(renderOptions) {
       // 倒序比对每一个元素，做插入操作
     }
   };
-  const patchChildren = (n1, n2, el, parentComponent) => {
+  const patchChildren = (n1, n2, el, anchor, parentComponent) => {
     // 儿子节点的情况：text/array/null
     const c1 = n1.children;
     const c2 = normalize(n2.children);
@@ -286,12 +286,23 @@ export function createRenderer(renderOptions) {
         }
         // 6.
         if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
-          mountChildren(c2, el, parentComponent);
+          mountChildren(c2, el, anchor, parentComponent);
         }
       }
     }
   };
-  const patchElement = (n1, n2, container, parentComponent) => {
+  const patchBlockChildren = (n1, n2, el, anchor, parentComponent) => {
+    for (let i = 0; i < n2.dynamicChildren.length; i++) {
+      patch(
+        n1.dynamicChildren[i],
+        n2.dynamicChildren[i],
+        el,
+        anchor,
+        parentComponent
+      );
+    }
+  };
+  const patchElement = (n1, n2, container, anchor, parentComponent) => {
     // 1.比较元素的差异，肯定需要复用dom元素
     // 2.比较属性和元素的子节点
     let el = (n2.el = n1.el); // 对dom元素的复用
@@ -299,16 +310,39 @@ export function createRenderer(renderOptions) {
     let oldProps = n1.props || {};
     let newProps = n2.props || {};
 
-    // hostPatchProp只针对一个属性进行处理，例如class、style、event、attr
-    patchProps(oldProps, newProps, el);
-
-    patchChildren(n1, n2, el, parentComponent);
-  };
-  const processFragment = (n1, n2, container, parentComponent) => {
-    if (n1 === null) {
-      mountChildren(n2.children, container, parentComponent);
+    // 编译优化：在比较元素的时候，处理标记为动态的
+    const { patchFlag, dynamicChildren } = n2;
+    if (patchFlag) {
+      if (patchFlag & PatchFlags.PROPS) {
+        // 属性变化更新， 不再具体实现
+      }
+      if (patchFlag & PatchFlags.STYLE) {
+        // 样式变化更新， 不再具体实现
+      }
+      if (patchFlag & PatchFlags.TEXT) {
+        // 只要儿子是动态的：模板中是插值“{{}}”，只比较文本
+        if (n1.children !== n2.children) {
+          return hostSetElementText(el, n2.children);
+        }
+      }
     } else {
-      patchChildren(n1, n2, container, parentComponent);
+      // hostPatchProp只针对一个属性进行处理，例如class、style、event、attr
+      patchProps(oldProps, newProps, el);
+    }
+
+    if (dynamicChildren) {
+      // 线性比对（只比较标记的动态节点，性能高）
+      patchBlockChildren(n1, n2, el, anchor, parentComponent);
+    } else {
+      // 全量diff
+      patchChildren(n1, n2, el, anchor, parentComponent);
+    }
+  };
+  const processFragment = (n1, n2, container, anchor, parentComponent) => {
+    if (n1 === null) {
+      mountChildren(n2.children, container, anchor, parentComponent);
+    } else {
+      patchChildren(n1, n2, container, anchor, parentComponent);
     }
   };
   function renderComponent(instance) {
@@ -484,7 +518,7 @@ export function createRenderer(renderOptions) {
         processText(n1, n2, container);
         break;
       case Fragment:
-        processFragment(n1, n2, container, parentComponent);
+        processFragment(n1, n2, container, anchor, parentComponent);
         break;
       default:
         if (shapeFlag & ShapeFlags.ELEMENT) {

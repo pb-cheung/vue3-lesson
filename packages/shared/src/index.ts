@@ -11,6 +11,7 @@ export function isString(value) {
 }
 
 export * from './shapeFlags';
+export * from './patchFlags';
 
 // 反柯里化
 const hasOwnProperty = Object.prototype.hasOwnProperty;
