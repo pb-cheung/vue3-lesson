@@ -9,39 +9,79 @@
   <body>
     <div id="app"></div>
     <script type="module">
-      // import {
-      //   createVNode as _createElementVNode,
-      //   toDisplayString as _toDisplayString,
-      //   openBlock as _openBlock,
-      //   createElementBlock as _createElementBlock,
-      //   render,
-      //   h,
-      //   reactive,
-      //   toRefs,
-      // } from '/node_modules/vue/dist/vue.runtime.esm-browser.js';
-
       import {
-        render,
-        h,
-        reactive,
-        toRefs,
         createVNode as _createElementVNode,
         toDisplayString as _toDisplayString,
         openBlock as _openBlock,
         createElementBlock as _createElementBlock,
-      } from './runtime-dom.js';
+        render,
+        h,
+        reactive,
+        toRefs,
+      } from '/node_modules/vue/dist/vue.runtime.esm-browser.js';
+
+      // import {
+      //   render,
+      //   h,
+      //   reactive,
+      //   toRefs,
+      //   createVNode as _createElementVNode,
+      //   toDisplayString as _toDisplayString,
+      //   openBlock as _openBlock,
+      //   createElementBlock as _createElementBlock,
+      // } from './runtime-dom.js';
 
       // lesson-52 靶向更新
+      // const MyComponent = {
+      //   setup() {
+      //     const state = reactive({
+      //       a: 1,
+      //       name: 'pb',
+      //     });
+
+      //     setTimeout(() => {
+      //       state.a = 2;
+      //       state.name = 'pb_updated';
+      //     }, 1000);
+
+      //     return {
+      //       ...toRefs(state),
+      //     };
+      //   },
+      //   render(_ctx) {
+      //     const vnode =
+      //       (_openBlock(),
+      //       _createElementBlock('div', null, [
+      //         _createElementVNode('h1', null, 'Hello! pb'),
+      //         _createElementVNode(
+      //           'span',
+      //           null,
+      //           _toDisplayString(_ctx.name),
+      //           1 /* TEXT */ // 模板编译的时候，添加的patchFlag
+      //         ),
+      //       ]));
+      //     console.log(
+      //       '🚀 ~ file: compile-opt.html ~ line 56 ~ render ~ vnode',
+      //       vnode
+      //     );
+
+      //     return vnode;
+      //   },
+      // };
+
+      // render(h(MyComponent), app);
+
+      // lesson-53 BlockTree
       const MyComponent = {
         setup() {
           const state = reactive({
-            a: 1,
-            name: 'pb',
+            a: 'pb',
+            flag: true,
           });
 
           setTimeout(() => {
-            state.a = 2;
-            state.name = 'pb_updated';
+            state.a = 'pb_updated';
+            state.flag = false;
           }, 1000);
 
           return {
@@ -52,16 +92,28 @@
           const vnode =
             (_openBlock(),
             _createElementBlock('div', null, [
-              _createElementVNode('h1', null, 'Hello! pb'),
-              _createElementVNode(
-                'span',
-                null,
-                _toDisplayString(_ctx.name),
-                1 /* TEXT */ // 模板编译的时候，添加的patchFlag
-              ),
+              _ctx.flag
+                ? (_openBlock(),
+                  _createElementBlock('p', { key: 0 }, [
+                    _createElementVNode(
+                      'span',
+                      null,
+                      _toDisplayString(_ctx.a),
+                      1 /* TEXT */
+                    ),
+                  ]))
+                : (_openBlock(),
+                  _createElementBlock('div', { key: 1 }, [
+                    _createElementVNode(
+                      'span',
+                      null,
+                      _toDisplayString(_ctx.a),
+                      1 /* TEXT */
+                    ),
+                  ])),
             ]));
           console.log(
-            '🚀 ~ file: compile-opt.html ~ line 56 ~ render ~ vnode',
+            '🚀 ~ file: compile-opt.html ~ line 93 ~ render ~ vnode',
             vnode
           );
 
