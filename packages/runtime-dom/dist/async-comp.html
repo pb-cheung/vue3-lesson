@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>async-comp</title>
+  </head>
+
+  <body>
+    <div id="app"></div>
+    <script type="module">
+      // import {
+      //   render,
+      //   h,
+      //   Text,
+      //   defineAsyncComponent,
+      // } from '/node_modules/vue/dist/vue.runtime.esm-browser.js';
+
+      import {
+        render,
+        h,
+        Text,
+        Fragment,
+        defineAsyncComponent,
+      } from './runtime-dom.js';
+
+      const comp = import('./asyncComponent.js');
+      console.log('🚀 ~ file: async-comp.html ~ line 25 ~ comp', comp);
+
+      const count = 2; // 加载重试次数
+      let i = 0;
+
+      // lesson-50 异步组件
+      // 异步组件的原理和图片懒加载类似
+      // 基于状态来实现 loaded ? h(组件): h(空节点)
+      // const MyComponent = defineAsyncComponent(() => comp);
+      const MyComponent = defineAsyncComponent({
+        loader: () => {
+          return new Promise((resolve, reject) => {
+            setTimeout(() => {
+              // resolve({
+              //   render: () => {
+              //     return h('div', 'Hello Async Component');
+              //   },
+              // });
+
+              // 验证加载异常处理逻辑
+              // reject({
+              //   render: () => {
+              //     return h('div', 'Hello Async Component');
+              //   },
+              // });
+
+              // 验证超时失败
+              // resolve({
+              //   render: () => {
+              //     return h('div', 'Hello Async Component');
+              //   },
+              // });
+
+              // 验证加载错误处理函数
+              if (i++ === count) {
+                resolve({
+                  render: () => {
+                    return h('div', 'Hello Async Component');
+                  },
+                });
+              } else {
+                reject({
+                  render: () => {
+                    return h('div', 'Hello Async Component');
+                  },
+                });
+              }
+            }, 3000);
+          });
+        },
+        timeout: 1000,
+        errorComponent: {
+          render: () => {
+            return h('div', 'Error component');
+          },
+        },
+        delay: 500, // 500ms内如果组件没有加载出来，显示loading
+        loadingComponent: {
+          render: () => {
+            return h('div', 'Loading...');
+          },
+        },
+        onError(err, retry, fail, attempts) {
+          console.error(
+            'Error loading async component:',
+            err,
+            retry,
+            fail,
+            attempts
+          );
+          setTimeout(() => {
+            retry();
+            console.log('重新加载中...');
+          }, 1000);
+        },
+      });
+
+      //
+      render(h(MyComponent), app);
+    </script>
+  </body>
+</html>
