@@ -16,7 +16,12 @@ function createParserContext(content) {
   };
 }
 function isEnd(context) {
-  return context.source.length === 0;
+  const c = context.source;
+  if (c.startsWith('</')) {
+    // 如果是闭合标签也要停止循环
+    return true;
+  }
+  return !c;
 }
 function advancePositionMutation(context, c, endIndex) {
   let linesCount = 0; // 第几行
@@ -24,6 +29,7 @@ function advancePositionMutation(context, c, endIndex) {
 
   for (let i = 0; i < endIndex; i++) {
     if (c.charCodeAt(i) === 10) {
+      // 字符码 10 对应的是换行符 \n
       linesCount++;
       linePos = i;
     }
@@ -52,7 +58,20 @@ const getCursor = (context) => {
     offset,
   };
 };
+function parseInterpolation(context) {
+  const start = getCursor(context);
+  advanceBy(context, 2); // 跳过 {{
+  const content = parseTextData(context, context.source.indexOf('}}'));
+  advanceBy(context, 2); // 跳过 }}
+  return {
+    type: NodeTypes.INTERPOLATION,
+    content,
+    loc: getSelection(context, start),
+  };
+}
 function parseText(context) {
+  const start = getCursor(context);
+
   let tokens = ['<', '{{']; // 找当前离得最近的词法
   let endIndex = context.source.length; // 先假设找不到
   for (let i = 0; i < tokens.length; i++) {
@@ -66,6 +85,7 @@ function parseText(context) {
   return {
     type: NodeTypes.TEXT,
     content,
+    loc: getSelection(context, start),
   };
 }
 
@@ -114,12 +134,13 @@ function parseElement(context) {
   // 在AST explorer中查看被转换后的AST，然后实现函数
   const ele = parseTag(context);
 
+  const children = parseChildren(context); // 递归解析儿子节点
+
   if (context.source.startsWith('</')) {
     parseTag(context); // 闭合标签没有什么需要处理的，直接移除即可
   } // <div></div>
 
-  (ele as any).children = [];
-
+  (ele as any).children = children;
   (ele as any).loc = getSelection(context, ele.loc.start); // 位置
 
   return ele;
@@ -131,7 +152,7 @@ function parseChildren(context) {
     let node;
     if (c.startsWith('{{')) {
       // 插值
-      node = '表达式';
+      node = parseInterpolation(context);
     } else if (c[0] === '<') {
       // 标签，<div>
       node = parseElement(context);

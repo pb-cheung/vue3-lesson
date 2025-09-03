@@ -24,12 +24,21 @@
       // console.log(parse('<div a="1"></div>'));
 
       // 验证parse相关的函数，和解析文本
-      console.log(parse('内容'));
+      // console.log(parse('内容'));
 
       // console.log(parse('内容 {{name}} <div></div>'));
 
       // 解析元素
-      console.log(parse('<div></div>'));
+      // console.log(parse('<div></div>'));
+
+      // 验证自闭合，有空格标签元素
+      // console.log(parse('<div   />'));
+
+      // 验证嵌套标签，递归处理parseChildren
+      // console.log(parse('<div><span><a></a></span></div>'));
+
+      // 验证解析插值表达式
+      console.log(parse('<div >hello {{name}}</div>'));
     </script>
   </body>
 </html>
