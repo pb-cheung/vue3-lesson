@@ -38,7 +38,35 @@
       // console.log(parse('<div><span><a></a></span></div>'));
 
       // 验证解析插值表达式
-      console.log(parse('<div >hello {{name}}</div>'));
+      // console.log(parse('<div >hello {{name}}</div>'));
+
+      // lesson-58
+      // 处理元素属性
+      // console.log(parse(`<div a  =  '1'></div>`));
+      // 属性无引号
+      // console.log(parse(`<div a  = 1></div>`));
+      // 属性复杂情况
+      // console.log(parse(`<div a  = 1  b='2' c="3"></div>`));
+
+      // lesson-59
+      // 去除空白字符
+      // console.log(
+      //   parse(`<div a  = 1  b='2' c="3">
+      //   <div></div>
+
+      //   <div></div>
+
+      //   <div></div>
+
+      //   </div>`)
+      // );
+
+      console.log(
+        parse(`<div a  = 1  b='2' c="3">
+       abc   abc    abc
+        
+        </div>`)
+      );
     </script>
   </body>
 </html>

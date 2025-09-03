@@ -111,6 +111,61 @@ function advanceSpaces(context) {
     advanceBy(context, match[0].length);
   }
 }
+function parseAttributeValue(context) {
+  const quote = context.source[0];
+  const isQuoted = quote === '"' || quote === "'";
+  let content;
+
+  if (isQuoted) {
+    advanceBy(context, 1);
+    const endIndex = context.source.indexOf(quote, 1);
+    content = parseTextData(context, endIndex);
+    advanceBy(context, 1);
+  } else {
+    content = context.source.match(/([^\s/>])+/)[1];
+    advanceBy(context, content.length);
+    advanceSpaces(context);
+  }
+
+  return content;
+}
+function parseAttribute(context) {
+  const start = getCursor(context);
+
+  let match = /^[^\t\r\n\f />][^\t\r\n\f />=]*/.exec(context.source);
+  const name = match[0];
+  let value;
+  advanceBy(context, name.length);
+
+  // a =  '1'
+  if (/^[\t\r\nf ]*=/.test(context.source)) {
+    advanceSpaces(context); // 删空格
+    advanceBy(context, 1); // 删等号
+    advanceSpaces(context); // 删空格
+
+    value = parseAttributeValue(context);
+  }
+  let loc = getSelection(context, start);
+  return {
+    type: NodeTypes.ATTRIBUTE,
+    name,
+    value: {
+      type: NodeTypes.TEXT,
+      content: value,
+      loc: loc,
+    },
+    loc: getSelection(context, start),
+  };
+}
+function parseAttributes(context) {
+  const props = [];
+
+  while (context.source.length > 0 && !context.source.startsWith('>')) {
+    props.push(parseAttribute(context));
+    advanceSpaces(context);
+  }
+  return props;
+}
 function parseTag(context) {
   // 可以通过Regexper网站，https://regexr.com/ 进行正则表达式的测试
   const start = getCursor(context);
@@ -119,6 +174,8 @@ function parseTag(context) {
   advanceBy(context, match[0].length); // 删除匹配到的内容
   advanceSpaces(context); // <div   /> 移除空格
 
+  let props = parseAttributes(context);
+
   const isSelfClosing = context.source.startsWith('/>'); // 是否是自闭合标签
   advanceBy(context, isSelfClosing ? 2 : 1);
 
@@ -126,6 +183,7 @@ function parseTag(context) {
     type: NodeTypes.ELEMENT,
     tag,
     isSelfClosing,
+    props,
     loc: getSelection(context, start), // 开头标签解析后的信息
   };
 }
@@ -167,7 +225,20 @@ function parseChildren(context) {
       nodes.push(node);
     }
   }
-  return nodes;
+
+  for (let i = 0; i < nodes.length; i++) {
+    let node = nodes[i];
+    // 将空节点进行压缩
+    if (node.type === NodeTypes.TEXT) {
+      // 如果是空白字符 清空
+      if (!/[^\s]/.test(node.content)) {
+        nodes[i] = null; // 空白字符清空
+      } else {
+        node.content = node.content.replace(/\s+/g, ' ');
+      }
+    }
+  }
+  return nodes.filter(Boolean);
 }
 function createRoot(children) {
   return {
