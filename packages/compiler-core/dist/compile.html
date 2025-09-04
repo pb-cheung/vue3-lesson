@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Vue 3 Compiler Core</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body>
+    <h1>Welcome to Vue 3 Compiler Core</h1>
+    <div id="app">
+      <!-- Vue app will mount here -->
+    </div>
+    <script type="module">
+      // 一般在工程化中使用，因为运行时，对性能有要求
+      // 依赖关系：vue -> runtime-dom -> runtime-core -> reactivity
+      // import {
+      //   compile,
+      //   parse,
+      // } from '/node_modules/@vue/compiler-dom/dist/compiler-dom.esm-browser.js';
+
+      import { compile, parse } from './compiler-core.js';
+
+      // lesson-60
+      // console.log(compile(`{{name}} abc <div>123</div>`));
+
+      // 验证元素和文本处理
+      // console.log(compile(`<div>123</div>`));
+
+      // 验证表达式（插值）处理
+      console.log(compile(`{{abc}}`));
+    </script>
+  </body>
+</html>
