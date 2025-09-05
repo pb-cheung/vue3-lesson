@@ -9,3 +9,5 @@
 AST 语法树，用到的场景：TS => JS, ES6 => ES5
 
 代码转换 AST 的在线工具：[astexplorer.net](https://astexplorer.net/)
+
+![模板编译过程](./images/vuejs-template-compile.png)
